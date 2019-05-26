@@ -1,0 +1,3 @@
+kick fe.s
+x64 fe.prg >/dev/null
+
