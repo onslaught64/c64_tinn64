@@ -44,6 +44,15 @@
     sta b3
 }
 
+.macro load_r(bhi,bmd,blo){
+    lda #blo
+    sta r1
+    lda #bmd
+    sta r2
+    lda #bhi
+    sta r3
+}
+
 .macro mv_result_lo(address){
     lda r1
     sta address
@@ -116,8 +125,16 @@ mCmp:
 !skip:
     rts
 
-mNeg:
+mNegA:
     negative24(a1)
+    rts
+
+mNegB:
+    negative24(b1)
+    rts
+
+mNegR:
+    negative24(r1)
     rts
 
 .macro negative24(lowestByte){
