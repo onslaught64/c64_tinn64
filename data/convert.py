@@ -50,7 +50,7 @@ img_lib.append("full_numpy_bitmap_cat.npy")
 img_lib.append("full_numpy_bitmap_coffee cup.npy")
 img_lib.append("full_numpy_bitmap_computer.npy")
 img_lib.append("full_numpy_bitmap_police car.npy")
-img_lib.append("full_numpy_bitmap_rainbow.npy")
+img_lib.append("full_numpy_bitmap_teddy-bear.npy")
 img_lib.append("full_numpy_bitmap_underwear.npy")
 img_lib.append("full_numpy_bitmap_snake.npy")
 img_lib.append("full_numpy_bitmap_square.npy")
@@ -58,29 +58,31 @@ img_lib.append("full_numpy_bitmap_submarine.npy")
 img_lib.append("full_numpy_bitmap_toilet.npy")
 
 img_idx = list()
-img_idx.append("1 0 0 0 0 0 0 0 0 0")
-img_idx.append("0 1 0 0 0 0 0 0 0 0")
-img_idx.append("0 0 1 0 0 0 0 0 0 0")
-img_idx.append("0 0 0 1 0 0 0 0 0 0")
-img_idx.append("0 0 0 0 1 0 0 0 0 0")
-img_idx.append("0 0 0 0 0 1 0 0 0 0")
-img_idx.append("0 0 0 0 0 0 1 0 0 0")
-img_idx.append("0 0 0 0 0 0 0 1 0 0")
-img_idx.append("0 0 0 0 0 0 0 0 1 0")
-img_idx.append("0 0 0 0 0 0 0 0 0 1")
+img_idx.append("1 0 0 0 0 0 0 0 0 0") #cat
+img_idx.append("0 1 0 0 0 0 0 0 0 0") #coffee
+img_idx.append("0 0 1 0 0 0 0 0 0 0") #computer
+img_idx.append("0 0 0 1 0 0 0 0 0 0") #po po
+img_idx.append("0 0 0 0 1 0 0 0 0 0") #teddy 
+img_idx.append("0 0 0 0 0 1 0 0 0 0") #undies
+img_idx.append("0 0 0 0 0 0 1 0 0 0") #snake
+img_idx.append("0 0 0 0 0 0 0 1 0 0") #square
+img_idx.append("0 0 0 0 0 0 0 0 1 0") #sub
+img_idx.append("0 0 0 0 0 0 0 0 0 1") #dunny
 
 output = open("training.data","w")
 for index in range(len(img_lib)):
     img_set = np.load(img_lib[index])
-    print("Processing " + img_lib[index] + "\n")
     max_count = len(img_set)
-    with Bar('Processing', max=max_count) as bar:
+    with Bar('Processing ' + img_lib[index], max=max_count) as bar:
         for img in img_set:
             line = ""
             s = rsz(fs_image(img))
             for i in range(osz):
+                # tmp = ""
                 for j in range(osz):
-                    line = line + str(float(s[j][i])) + " "
+                    line = line + str(float(s[i][j])) + " "
+                    # tmp = tmp + str(s[i][j])
+                # print(tmp)
             line = line + img_idx[index] + "\n"
             output.write(line)   
-            bar.next()     
+            bar.next()
