@@ -3,7 +3,7 @@ from fixedpointnumber import FixedPointNumber
 
 def fp(value: float):
     f = FixedPointNumber(value)
-    print("BINARY:" + str(f) + " FLOAT:" + str(value))
+    print(str(f))
 
 fp(1.0)
 fp(0.5)

@@ -53,7 +53,25 @@
     sta r3
 }
 
-.macro mv_result_lo(address){
+.macro mv_a(address){
+    lda a1
+    sta address
+    lda a2
+    sta address + 1
+    lda a3
+    sta address + 2
+}
+
+.macro mv_b(address){
+    lda b1
+    sta address
+    lda b2
+    sta address + 1
+    lda b3
+    sta address + 2
+}
+
+.macro mv_result(address){
     lda r1
     sta address
     lda r2
@@ -62,12 +80,12 @@
     sta address + 2
 }
 
-.macro mv_result_hi(address){
-    lda r4
+.macro mv_mul_result(address){
+    lda r3
     sta address
-    lda r5
+    lda r4
     sta address + 1
-    lda r6
+    lda r5
     sta address + 2
 }
 
@@ -185,10 +203,6 @@ mMul:
     stx r1 // init result
     stx r2
     stx r3
-    stx r4
-    stx r5
-    stx r6
-
 	lda a3 //high byte (sign)
 	bpl !skip+ //  if factor1 is negative
 	negative24(a1) // then factor1 := -factor1
@@ -198,34 +212,49 @@ mMul:
 	bpl !skip+ // if factor2 is negative
 	negative24(b1) // then factor2 := -factor2
 	inx // and switch sign
+    stx mul_sign_flag
+
 !skip:
     // do unsigned multiplication
-    ldy #$18     //Set binary count to 24
-!SHIFT_R:
-    lsr a3   //Shift multiplyer right
-    ror a2
-    ror a1
-    bcc !ROTATE_R+ //Go rotate right if c = 0
-    lda r4 // Get upper half of product
-    clc      // and add multiplicand to it
-    adc b1
-    sta r4
-    lda r5
-    adc b2
-    sta r5
-    lda r6
-    adc b3
-!ROTATE_R:  
-    ror //a Rotate partial product right
-    sta r6 
-    ror r5 
-    ror r4 
-    ror r3 
-    ror r2 
-    ror r1 
-    dey //Decrement bit count and
-    bne !SHIFT_R-  // loop until 24 bits are done
-	txa
+!loop:
+	lda b1			// ; while factor2 != 0
+	bne !nz+
+	lda b2
+	bne !nz+
+	lda b3
+	bne !nz+
+	jmp !done+
+!nz:
+	lda b1			// ; if factor2 is odd
+	and #$01
+	beq !skip+
+	
+	lda a1			// ; product += factor1
+	clc
+	adc r1
+	sta r1
+	
+	lda a2
+	adc r2
+	sta r2
+	
+	lda a3
+	adc r3
+	sta r3			//; end if
+
+!skip:
+	asl a1			//; << factor1 
+	rol a2
+	rol a3
+	lsr b3			//; >> factor2
+	ror b2
+	ror b1
+
+	jmp !loop-		//; end while	
+
+!done:
+    //clean up sign
+	lda mul_sign_flag: #$00
 	and #$01 // if .x is odd
 	beq !skip+
 	negative48(r1) // then product := -product
@@ -236,57 +265,64 @@ mMul:
 
 	
 
-mDiv:
-	ldx #$00 // .x will hold the sign of division
-    stx r1 // init result
-    stx r2
-    stx r3
-    stx r4
-    stx r5
-    stx r6
+// mDiv:
+// 	ldx #$00 // .x will hold the sign of division
+//     stx r1 // init result
+//     stx r2
+//     stx r3
+//     stx r4
+//     stx r5
+//     stx r6
 
-	lda a3 //high byte (sign)
-	bpl !skip+ //  if factor1 is negative
-	negative24(a1) // then factor1 := -factor1
-	inx	// and switch sign
-!skip:
-	lda b3 //high byte (sign)
-	bpl !skip+ // if factor2 is negative
-	negative24(b1) // then factor2 := -factor2
-	inx // and switch sign
-!skip:
-    stx divDoNeg
-    // do unsigned division
-    ldx #24 //Set bit length the 48bits (24 bit double)
-!loop:
-    asl a1 //dividend	;dividend lb & hb*2, msb -> Carry
-    rol a2 //dividend+1	
-    rol a3 //dividend+2
-    rol r1 //remainder	;remainder lb & hb * 2 + msb from carry
-    rol r2 //remainder+1
-    rol r3 //remainder+2
-    lda r1 //remainder
-    sec
-    sbc b1 //divisor	;substract divisor to see if it fits in
-    tay	   //lb result -> Y, for we may need it later
-    lda r2 //remainder+1
-    sbc b2 //divisor+1
-    sta pztemp
-    lda r3 //remainder+2
-    sbc b3 //divisor+2
-    bcc !skip+ //;if carry=0 then divisor didn't fit in yet
-    sta r3 //remainder+2	;else save substraction result as new remainder,
-    lda pztemp
-    sta r2 //remainder+1
-    sty r1 //remainder	
-    inc a1 //dividend 	;and INCrement result cause divisor fit in 1 times
-!skip:
-    dex
-    bne !loop-
-	lda divDoNeg: #$00
-	and #$01 // if .x is odd
-	beq !skip+
-	negative48(r1) // then product := -product
-    //rescale result
-!skip:
-    rts
+// 	lda a3 //high byte (sign)
+// 	bpl !skip+ //  if factor1 is negative
+// 	negative24(a1) // then factor1 := -factor1
+// 	inx	// and switch sign
+// !skip:
+// 	lda b3 //high byte (sign)
+// 	bpl !skip+ // if factor2 is negative
+// 	negative24(b1) // then factor2 := -factor2
+// 	inx // and switch sign
+//     stx sign_flag
+// !skip:
+
+//     //http://codebase64.org/doku.php?id=base:24bit_division_24-bit_result
+//     //modified for signed 
+// 	ldx #24	       // ;repeat for each bit: ...
+// divloop:
+// 	asl a1 //dividend	;dividend lb & hb*2, msb -> Carry
+// 	rol a2 //dividend+1	
+// 	rol a3 //dividend+2
+// 	rol r1 //remainder	;remainder lb & hb * 2 + msb from carry
+// 	rol r2 //remainder+1
+// 	rol r3 //remainder+2
+// 	lda r1 //remainder
+// 	sec
+// 	sbc b1 //divisor	;substract divisor to see if it fits in
+// 	tay	   //     ;lb result -> Y, for we may need it later
+// 	lda r2 //remainder+1
+// 	sbc b2 //divisor+1
+// 	sta pztemp
+// 	lda r3 //remainder+2
+// 	sbc b3 //divisor+2
+// 	bcc skip	//;if carry=0 then divisor didn't fit in yet
+
+// 	sta r3 //remainder+2	//;else save substraction result as new remainder,
+// 	lda pztemp
+// 	sta r2 //remainder+1
+// 	sty r1 //remainder	
+// 	inc a1 //dividend //	;and INCrement result cause divisor fit in 1 times
+// skip:	
+//     dex
+// 	bne divloop	
+
+//     lda sign_flag: #$00
+// 	and #$01 // if .x is odd
+// 	beq !skip+
+// 	negative24(a1) // then product := -product
+//     //rescale result
+// !skip:
+//     rts
+
+
+

@@ -2,14 +2,14 @@
 
 .pc = $0801 "Basic Upstart"
 :BasicUpstart(start) // 10 sys$0810
-.pc =$1000 "Program"
+.pc =$3000 "Program"
 start:
 
     //test
     load_a($01,$00,$01)
     load_b($00,$ff,$ff)
     jsr mAdd
-    mv_result_lo($c000)
+    mv_result($c000)
     assert($c000,$02,$00,$00,"01.0001 + 00.ffff")
 
     //test 
@@ -17,7 +17,7 @@ start:
     jsr mNegA
     load_b($01,$00,$00)
     jsr mAdd
-    mv_result_lo($c000)
+    mv_result($c000)
     assert($c000,$00,$00,$00, "-01.0000 + 01.0000")
 
     //test 
@@ -25,7 +25,7 @@ start:
     jsr mNegA
     load_b($01,$00,$00)
     jsr mAdd
-    mv_result_lo($c000)
+    mv_result($c000)
     assert($c000,$ff,$00,$00,"-02.0000 + 01.0000")
 
     //test 
@@ -33,23 +33,146 @@ start:
     jsr mNegA
     load_b($01,$01,$00)
     jsr mAdd
-    mv_result_lo($c000)
+    mv_result($c000)
     assert($c000,$00,$00,$00,"-01.0100 + 01.0100")
 
     //test
     load_r($01,$00,$00)
     jsr mNegR
-    mv_result_lo($c003)
-    assert($c003,$ff,$00,$00,"-01.0000 immediate")
+    mv_result($c000)
+    assert($c000,$ff,$00,$00,"-01.0000 immediate")
+
+    //test
+    load_r($00,$01,$00)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$ff,$00,"-00.0100 immediate")
+
+    //test
+    load_r($00,$00,$01)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$ff,$ff,"-00.0001 immediate")
+
+    //test
+    load_r($00,$00,$02)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$ff,$fe,"-00.0002 immediate")
+
+    //test
+    load_r($01,$01,$00)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$fe,$ff,$00,"-01.0100 immediate")
+
+
+    //test
+    load_r($7f,$ff,$ff)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$80,$00,$01,"7f.ffff immediate")
+
+    //test
+    load_r($00,$00,$ff)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$ff,$01,"negative of 0000ff")
+
+    //test
+    load_r($00,$ff,$ff)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$00,$01,"negative of 00ffff")
+
+    //test
+    load_r($00,$ff,$fe)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$00,$02,"negative of 00fffe")
+
+
+    //test
+    load_r($00,$00,$00)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$00,$00,$00,"negative of 000000")
+
+
+    //test
+    load_r($00,$01,$01)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$fe,$ff,"negative of 000101")
+
+
+    //test
+    load_r($01,$01,$01)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$fe,$fe,$ff,"negative of 010101")
+
+
+    //test
+    load_r($00,$80,$00)
+    jsr mNegR
+    mv_result($c000)
+    assert($c000,$ff,$80,$00,"negative $008000")
+
 
     //test 
     load_a($01,$01,$00)
     jsr mNegA
-    load_b($01,$01,$00)
+    load_b($01,$02,$00)
     jsr mNegB
     jsr mAdd
-    mv_result_lo($c000)
-    assert($c000,$02,$02,$00,"-01.0100 + -01.0100")
+    mv_result($c000)
+    assert($c000,$fd,$fd,$00,"-01.0100 + -01.0100") 
+
+    //test 
+    load_a($01,$01,$00)
+    jsr mNegA
+    load_b($01,$02,$00)
+    jsr mSub
+    mv_result($c000)
+    assert($c000,$fd,$fd,$00,"-01.0100 - 01.0100") 
+
+    //test
+    load_a($00,$00,$01)
+    load_b($00,$00,$01)
+    jsr mAdd
+    mv_result($c000)
+    assert($c000,$00,$00,$02,"00.0001 + 00.0001")
+
+    //test
+    load_a($44,$44,$44)
+    load_b($20,$20,$20)
+    jsr mSub
+    mv_result($c000)
+    assert($c000,$24,$24,$24,"44.4444 - 20.2020")
+
+    //test
+    load_a($00,$00,$03)
+    load_b($00,$00,$02)
+    jsr mMul
+    mv_result($c000)
+    assert($c000,$00,$00,$00,"00.0003 * 00.0002")
+
+    //test
+    load_a($03,$03,$03)
+    load_b($02,$00,$00)
+    jsr mMul
+    mv_result($c000)
+    assert($c000,$06,$06,$06,"03.0303 * 02.0000")
+
+
+    //test
+    load_a($00,$80,$00)
+    load_b($02,$00,$00)
+    jsr mMul
+    mv_result($c000)
+    assert($c000,$06,$06,$06,"00.8000 * 02.0000")
+
 
 !end:
     inc $d020
@@ -65,7 +188,7 @@ start:
     cmp #vlo
     beq !skip+
 !loop:
-    lda #$03
+    lda #$02
     sta $d020
     jmp !loop-
 !skip:
@@ -73,7 +196,7 @@ start:
     cmp #vmd
     beq !skip+
 !loop:
-    lda #$03
+    lda #$02
     sta $d020
     jmp !loop-
 !skip:
@@ -81,7 +204,7 @@ start:
     cmp #vhi
     beq !skip+
 !loop:
-    lda #$03
+    lda #$02
     sta $d020
     jmp !loop-
 !skip:
