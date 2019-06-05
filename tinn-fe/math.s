@@ -7,23 +7,18 @@
 .label a3 = $a2
 .label a4 = $a3
 .label a5 = $a4
-.label a6 = $a5
 
-.label b1 = $a6
-.label b2 = $a7
-.label b3 = $a8
-.label b4 = $a9
-.label b5 = $aa
-.label b6 = $ab
+.label b1 = $a5
+.label b2 = $a6
+.label b3 = $a7
 
-.label r1 = $ac
-.label r2 = $ad
-.label r3 = $ae
-.label r4 = $af
-.label r5 = $b0
-.label r6 = $b1
+.label r1 = $a8
+.label r2 = $a9
+.label r3 = $aa
+.label r4 = $ab
+.label r5 = $ac
 
-.label pztemp = $b2
+.label pztemp = $ad
 
 
 .macro load_a(bhi,bmd,blo){
@@ -51,6 +46,18 @@
     sta r2
     lda #bhi
     sta r3
+}
+
+.macro read_r(){
+    lda r1
+    ldx r2
+    ldy r3
+}
+
+.macro read_mul_r(){
+    lda r3
+    ldx r4
+    ldy r5
 }
 
 .macro mv_a(address){
@@ -168,35 +175,42 @@ mNegR:
     sta lowestByte + 2
 }
 
-.macro negative48(lowestByte){
-    sec
-    lda #$00
-    sbc lowestByte
-    sta lowestByte
-    lda #$00
-    sbc lowestByte + 1
-    sta lowestByte + 1
-    lda #$00
-    sbc lowestByte + 2
-    sta lowestByte + 2
-    lda #$00
-    sbc lowestByte + 3
-    sta lowestByte + 3
-    lda #$00
-    sbc lowestByte + 4
-    sta lowestByte + 4
-    lda #$00
-    sbc lowestByte + 5
-    sta lowestByte + 5
-    lda #$00
-    sbc lowestByte + 6
-    sta lowestByte + 6
-}
+/*
+Should never need this code!
+*/
+// .macro negative48(lowestByte){
+//     sec
+//     lda #$00
+//     sbc lowestByte
+//     sta lowestByte
+//     lda #$00
+//     sbc lowestByte + 1
+//     sta lowestByte + 1
+//     lda #$00
+//     sbc lowestByte + 2
+//     sta lowestByte + 2
+//     lda #$00
+//     sbc lowestByte + 3
+//     sta lowestByte + 3
+//     lda #$00
+//     sbc lowestByte + 4
+//     sta lowestByte + 4
+//     lda #$00
+//     sbc lowestByte + 5
+//     sta lowestByte + 5
+//     lda #$00
+//     sbc lowestByte + 6
+//     sta lowestByte + 6
+// }
 
 
 /*
+Based on http://codebase64.org/doku.php?id=base:24bit_multiplication_24bit_product
 	; Signed 24-bit multiply routine
 	; Clobbers a, x, factor1, factor2
+    modified to handle fixed point multiply (2 extra bytes of precision)
+    note that the 24 bit result is actually r3 -> r5 NOT r1! 
+    Bascially reading from r3 rescales the result
 */
 mMul:
 	ldx #$00 // .x will hold the sign of product
@@ -205,10 +219,8 @@ mMul:
     stx r3
     stx r4
     stx r5
-    stx r6
     stx a4
     stx a5
-    stx a6
 	lda a3 //high byte (sign)
 	bpl !skip+ //  if factor1 is negative
 	negative24(a1) // then factor1 := -factor1
@@ -219,7 +231,6 @@ mMul:
 	negative24(b1) // then factor2 := -factor2
 	inx // and switch sign
 !skip:
-    stx mul_sign_flag
     // do unsigned multiplication
 !loop:
 	lda b1			// ; while factor2 != 0
@@ -255,9 +266,7 @@ mMul:
     adc r5
     sta r5
 
-	lda a6
-	adc r6
-	sta r6			//; end if
+//; end if
 
 !skip:
 	asl a1			//; << factor1 
@@ -265,7 +274,6 @@ mMul:
 	rol a3
     rol a4
     rol a5
-    rol a6
 	lsr b3			//; >> factor2
 	ror b2
 	ror b1
@@ -274,8 +282,7 @@ mMul:
 
 !done:
     //clean up sign
-.pc=* "debug"
-	lda mul_sign_flag: #$00
+	txa
 	and #$01 // if .x is odd
 	beq !skip+
 	negative24(r3) // then product := -product
