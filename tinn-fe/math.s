@@ -203,6 +203,12 @@ mMul:
     stx r1 // init result
     stx r2
     stx r3
+    stx r4
+    stx r5
+    stx r6
+    stx a4
+    stx a5
+    stx a6
 	lda a3 //high byte (sign)
 	bpl !skip+ //  if factor1 is negative
 	negative24(a1) // then factor1 := -factor1
@@ -212,9 +218,8 @@ mMul:
 	bpl !skip+ // if factor2 is negative
 	negative24(b1) // then factor2 := -factor2
 	inx // and switch sign
-    stx mul_sign_flag
-
 !skip:
+    stx mul_sign_flag
     // do unsigned multiplication
 !loop:
 	lda b1			// ; while factor2 != 0
@@ -238,14 +243,29 @@ mMul:
 	adc r2
 	sta r2
 	
-	lda a3
-	adc r3
-	sta r3			//; end if
+    lda a3
+    adc r3
+    sta r3
+
+    lda a4
+    adc r4
+    sta r4
+
+    lda a5
+    adc r5
+    sta r5
+
+	lda a6
+	adc r6
+	sta r6			//; end if
 
 !skip:
 	asl a1			//; << factor1 
 	rol a2
 	rol a3
+    rol a4
+    rol a5
+    rol a6
 	lsr b3			//; >> factor2
 	ror b2
 	ror b1
@@ -254,11 +274,11 @@ mMul:
 
 !done:
     //clean up sign
+.pc=* "debug"
 	lda mul_sign_flag: #$00
 	and #$01 // if .x is odd
 	beq !skip+
-	negative48(r1) // then product := -product
-    //rescale result
+	negative24(r3) // then product := -product
 !skip:
     rts
 

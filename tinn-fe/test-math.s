@@ -135,43 +135,69 @@ start:
     load_b($01,$02,$00)
     jsr mSub
     mv_result($c000)
-    assert($c000,$fd,$fd,$00,"-01.0100 - 01.0100") 
+    assert($c000,$fd,$fd,$00,"-01.0100 - 01.0100 = fd.fd00") 
 
     //test
     load_a($00,$00,$01)
     load_b($00,$00,$01)
     jsr mAdd
     mv_result($c000)
-    assert($c000,$00,$00,$02,"00.0001 + 00.0001")
+    assert($c000,$00,$00,$02,"00.0001 + 00.0001 = 00.0002")
 
     //test
     load_a($44,$44,$44)
     load_b($20,$20,$20)
     jsr mSub
     mv_result($c000)
-    assert($c000,$24,$24,$24,"44.4444 - 20.2020")
+    assert($c000,$24,$24,$24,"44.4444 - 20.2020 = 24.2424")
 
     //test
     load_a($00,$00,$03)
     load_b($00,$00,$02)
     jsr mMul
-    mv_result($c000)
-    assert($c000,$00,$00,$06,"00.0003 * 00.0002")
+    mv_mul_result($c000)
+    assert($c000,$00,$00,$00,"00.0003 * 00.0002 = 00.0000")
 
     //test
-    load_a($01,$12,$34)
-    load_b($01,$56,$78)
+    load_a($02,$00,$00)
+    load_b($03,$00,$00)
     jsr mMul
-    mv_result($c000)
-    assert($c000,$06,$06,$06,"12.3456 * 12.3456")
-
+    mv_mul_result($c000)
+    assert($c000,$06,$00,$00,"02.0000 * 03.0000 = 06.0000")
 
     //test
-    load_a($00,$80,$00)
+    load_a($00,$02,$00)
+    load_b($00,$03,$00)
+    jsr mMul
+    mv_mul_result($c000)
+    assert($c000,$00,$00,$06,"00.0200 * 00.0300 = 00.0006")
+
+    //test
+    load_a($00,$08,$00)
     load_b($02,$00,$00)
     jsr mMul
-    mv_result($c000)
-    assert($c000,$06,$06,$06,"00.8000 * 02.0000")
+    mv_mul_result($c000)
+    assert($c000,$00,$10,$00,"02.0000 * 00.0800 = 00.1000")
+
+
+    //test
+    load_a($00,$08,$00)
+    jsr mNegA
+    load_b($02,$00,$00)
+    jsr mNegB
+    jsr mMul
+    mv_mul_result($c000)
+    assert($c000,$00,$10,$00,"-02.0000 * -00.0800 = 00.1000")
+
+
+    //test
+    load_a($00,$08,$00)
+    jsr mNegA
+    load_b($02,$00,$00)
+    jsr mMul
+    mv_mul_result($c000)
+    negative24($c000)
+    assert($c000,$00,$10,$00,"-02.0000 * 00.0800 = -00.1000")
 
 
 !end:
