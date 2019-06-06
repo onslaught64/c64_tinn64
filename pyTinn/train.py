@@ -80,11 +80,11 @@ data = Data('../data/training.data', nips, nops)
 print("model init")
 t = tinn.Tinn(nips, nhid, nops)
 
-for _ in range(2):
+for _ in range(5):
 	print("Shuffle...")
 	data.shuffle()
 	error = 0
-	print("Training pass...")
+	print("Training pass..." + str(_) )
 	i = 0
 	count = len(data.in_)
 	for in_, tg in zip(data.in_, data.tg):
