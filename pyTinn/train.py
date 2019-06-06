@@ -33,7 +33,7 @@ class Data:
 
 def do_output(o, value:float):
 	fp = FixedPointNumber(value)
-	o.write(str(fp) + " // " + str(value) + "\n")
+	o.write(str(fp) + "\n")
 
 
 nips = 256
@@ -60,20 +60,32 @@ pd = tinn.xtpredict(t, in_)
 print(' '.join(map(str, tg)))
 print(' '.join(map(str, pd)))
 
-# export KickAss fixed point neurons and biases 
+# export KickAss fixed point lookups, neurons and biases 
 output = open("data.asm","w")
 print()
 print()
+output.write("// Activation Exponent Lookup:")
+output.write(".align $100")
+output.write("exp_lut:")
+for i in range(256):
+        do_output(output,( 1 / (1 + math.exp(-((8 * (i/256))-4)))))
+
 output.write("// Biases: \n")
+output.write(".align $100")
+output.write("t_biases:"
 for i in t.b:
 	do_output(output, i)
 
 output.write("// Input to Hidden: \n")
+output.write(".align $100")
+output.write("t_x1:")
 for i in t.x1:
 	for j in i:
 		do_output(output, j)
 		
 output.write("// Hidden to Output: \n")
+output.write(".align $100")
+output.write("t_x2:")
 for i in t.x2:
 	for j in i:
 		do_output(output, j)
