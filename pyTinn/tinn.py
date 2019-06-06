@@ -5,17 +5,15 @@ import math
 import random
 
 
-
+# we make exponent a lookup so we can emulate it precisely in C64
 exp_lut = list()
-
 for i in range(256):
 	exp_lut.append( 1 / (1 + math.exp(-((8 * (i/256))-4))) )
 
-for i in exp_lut:
-	print(str(i))
+# for i in exp_lut:
+# 	print(str(i))
 
 class Tinn:
-
 	def __init__(self, nips: int, nhid: int, nops: int):
 		"""Build a new t object given number of inputs (nips), number of hidden neurons for the hidden layer (nhid), and number of outputs (nops)."""
 		self.nips = nips  # number of inputs
