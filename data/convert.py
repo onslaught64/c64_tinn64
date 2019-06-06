@@ -1,5 +1,25 @@
 import numpy as np
-from progress.bar import Bar
+import sys
+
+
+def update_progress(progress):
+    barLength = 20 # Modify this to change the length of the progress bar
+    status = ""
+    if isinstance(progress, int):
+        progress = float(progress)
+    if not isinstance(progress, float):
+        progress = 0
+        status = "error: progress var must be float\r\n"
+    if progress < 0:
+        progress = 0
+        status = "Halt...\r\n"
+    if progress >= 1:
+        progress = 1
+        status = "Done...\r\n"
+    block = int(round(barLength*progress))
+    text = "\rProgress: [{0}] {1}% {2}".format( "#"*block + "-"*(barLength-block), round(progress*100), status)
+    sys.stdout.write(text)
+    sys.stdout.flush()
 
 
 osz = 16
@@ -73,16 +93,15 @@ output = open("training.data","w")
 for index in range(len(img_lib)):
     img_set = np.load(img_lib[index])
     max_count = len(img_set)
-    with Bar('Processing ' + img_lib[index], max=max_count) as bar:
-        for img in img_set:
-            line = ""
-            s = rsz(fs_image(img))
-            for i in range(osz):
-                # tmp = ""
-                for j in range(osz):
-                    line = line + str(float(s[i][j])) + " "
-                    # tmp = tmp + str(s[i][j])
-                # print(tmp)
-            line = line + img_idx[index] + "\n"
-            output.write(line)   
-            bar.next()
+    cur_count = 0
+    print("Processing " + img_lib[index])
+    for img in img_set:
+        line = ""
+        s = rsz(fs_image(img))
+        for i in range(osz):
+            for j in range(osz):
+                line = line + str(float(s[i][j])) + " "
+        line = line + img_idx[index] + "\n"
+        output.write(line)
+        update_progress(cur_count/max_count)
+        cur_count += 1
