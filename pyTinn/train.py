@@ -1,9 +1,38 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import math
 import random
 import tinn
 from fixedpointnumber import FixedPointNumber 
+from itertools import (takewhile,repeat)
+import sys
+
+
+def update_progress(progress):
+    barLength = 10 # Modify this to change the length of the progress bar
+    status = ""
+    if isinstance(progress, int):
+        progress = float(progress)
+    if not isinstance(progress, float):
+        progress = 0
+        status = "error: progress var must be float\r\n"
+    if progress < 0:
+        progress = 0
+        status = "Halt...\r\n"
+    if progress >= 1:
+        progress = 1
+        status = "Done...\r\n"
+    block = int(round(barLength*progress))
+    text = "\rPercent: [{0}] {1}% {2}".format( "#"*block + "-"*(barLength-block), round(progress*100), status)
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
+
+def rawincount(filename):
+    f = open(filename, 'rb')
+    bufgen = takewhile(lambda x: x, (f.raw.read(1024*1024) for _ in repeat(None)))
+    return sum( buf.count(b'\n') for buf in bufgen )
 
 
 class Data:
@@ -15,8 +44,13 @@ class Data:
 
 	def read_data(self, path, nips, nops):
 		self.in_, self.tg = [], []
+		count = rawincount(path)
+		i = 0
+		print("Importing " + str(count))
 		with open(path) as data_file:
 			for line in data_file:
+				update_progress(i/count)
+				i += 1
 				row = list(map(float, line.split()))
 				self.in_.append(row[:nips])
 				self.tg.append(row[nips:])
@@ -45,12 +79,19 @@ print("loading training data")
 data = Data('../data/training.data', nips, nops)
 print("model init")
 t = tinn.Tinn(nips, nhid, nops)
-for _ in range(1):
+
+for _ in range(2):
+	print("Shuffle...")
 	data.shuffle()
 	error = 0
-	print("training pass...")
+	print("Training pass...")
+	i = 0
+	count = len(data.in_)
 	for in_, tg in zip(data.in_, data.tg):
 		error += tinn.xttrain(t, in_, tg, rate)
+		update_progress(i/count)
+		i += 1
+	print()
 	print("error " + str(error/len(data)) + " :: learning rate " + str(rate))
 	rate *= anneal
 
@@ -63,7 +104,7 @@ print(' '.join(map(str, pd)))
 # export KickAss fixed point lookups, neurons and biases 
 output = open("data.asm","w")
 print()
-print()
+print("Rendering to file...")
 output.write("// Activation Exponent Lookup:")
 output.write(".align $100")
 output.write("exp_lut:")
@@ -72,7 +113,7 @@ for i in range(256):
 
 output.write("// Biases: \n")
 output.write(".align $100")
-output.write("t_biases:"
+output.write("t_biases:")
 for i in t.b:
 	do_output(output, i)
 
