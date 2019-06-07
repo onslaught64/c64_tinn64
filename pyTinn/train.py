@@ -102,33 +102,38 @@ print(' '.join(map(str, tg)))
 print(' '.join(map(str, pd)))
 
 # export KickAss fixed point lookups, neurons and biases 
-output = open("data.asm","w")
+output = open("exp_lut.asm","w")
 print()
 print("Rendering to file...")
-output.write("// Activation Exponent Lookup:")
-output.write(".align $100")
-output.write("exp_lut:")
+output.write("// Activation Exponent Lookup: \n")
+output.write(".align $100 \n")
+output.write("exp_lut: \n")
 for i in range(256):
         do_output(output,( 1 / (1 + math.exp(-((8 * (i/256))-4)))))
+output.close()
 
+output = open("biases.asm","w")
 output.write("// Biases: \n")
-output.write(".align $100")
-output.write("t_biases:")
+output.write(".align $100 \n")
+output.write("t_biases: \n")
 for i in t.b:
 	do_output(output, i)
+output.close()
 
+output = open("t_x1.asm","w")
 output.write("// Input to Hidden: \n")
-output.write(".align $100")
-output.write("t_x1:")
+output.write(".align $100 \n")
+output.write("t_x1: \n")
 for i in t.x1:
 	for j in i:
 		do_output(output, j)
-		
+output.close()
+
+output = open("t_x2.asm","w")
 output.write("// Hidden to Output: \n")
-output.write(".align $100")
-output.write("t_x2:")
+output.write(".align $100 \n")
+output.write("t_x2: \n")
 for i in t.x2:
 	for j in i:
 		do_output(output, j)
-
 output.close()
