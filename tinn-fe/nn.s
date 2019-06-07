@@ -1,14 +1,17 @@
+/*
+Notes on memory map:
+Code $0800 -> $3000											= Base Data $3000
+Model input->hidden = 256 inputs * 32 hiddens * 3 bytes 	= $6000 bytes		$3000 - $9000 
+Model hidden->output = 32 hiddens * 10 outputs * 3 bytes 	= $3c0 bytes		$9000 - $a000
+Neurons input = bytemap from picture = 256 bytes 			= $ff bytes
+Neurons hidden = 32 hiddens * 3 bytes						= $60 bytes
+Neurons output = 10 outputs * 3 bytes						= $1e bytes
+
+*/
+
+
 
 /*
-Implement Tinn in 6502!!
-
-exp_lut = list()
-
-for i in range(256):
-	exp_lut.append( 1 / (1 + math.exp(-((8 * (i/256))-4))) )
-
-for i in exp_lut:
-	print(str(i))
 
 
 class Tinn:

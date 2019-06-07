@@ -1,7 +1,19 @@
 .import source "../lib/lib.s"
 .import source "../lib/easingLib.s"
 .import source "../lib/const.s"
-.import source "../lib/gui.input.keyboard_scan.asm"
+
+
+/*
+Default-segment:
+  $0801-$080d Basic Upstart
+  $0c00-$0cff Unnamed
+  $0d00-$0e96 Messages
+  $0e97-$0ec7 Help Colours
+  $1000-$19ff Music
+  $2000-$2206 Keyboard Scan Routine
+  $2800-$2d01 Program
+  $2d02-$2f6c Datasets
+*/
 
 .var music = LoadSid("Island_Lore.sid")
 _outputMusicInfo()
@@ -20,7 +32,9 @@ _outputMusicInfo()
 
 .pc = $0801 "Basic Upstart"
 :BasicUpstart(start) // 10 sys$0810
-.pc =$2800 "Program"
+.pc =$1a00 "Program"
+.import source "../lib/gui.input.keyboard_scan.asm"
+.pc = * "Code"
 start:
 	:mov #$00: $d020
 	:mov #$00: $d021
@@ -405,6 +419,7 @@ TOGGLE_STATE:
 /********************************************
 DATASETS
 *********************************************/
+.pc = * "Datasets"
 PIXEL_LUT:
 .byte 32  //0000 
 // 00
@@ -540,6 +555,7 @@ CURSOR_COLOR_LUT:
 .byte %00000000, %00000000, %00000000
 
 .align $100
+.pc = * "Messages"
 INSTRUCTIONS:
 .text "                                        "
 .text "neural network demo                     "
@@ -553,6 +569,7 @@ INSTRUCTIONS:
 .text "                                        "
 .byte $00, $00, $00, $00, $00, $00, $00
 
+.pc = * "Help Colours"
 HELP_COLORS:
 .byte 2, 2, 2, 10, 10, 10, 7, 7, 7, 10, 10, 10, 2, 2, 2, 0, 0 ,0, 0, 0
 .byte 6, 6, 6, 14, 14, 14, 3, 3, 3, 14, 14, 14, 6, 6, 6, 0, 0, 0, 0, 0
