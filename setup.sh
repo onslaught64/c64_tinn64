@@ -62,3 +62,6 @@ pip install progress
 echo "Set PYTHONPATH"
 export PYTHONPATH=$PYTHONPATH:data:pyTinn
 
+echo "Creating output directory..."
+mkdir output
+

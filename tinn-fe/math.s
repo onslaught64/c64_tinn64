@@ -18,7 +18,7 @@
 .label r4 = $ab
 .label r5 = $ac
 
-.label pztemp = $ad
+//.label pztemp = $ad
 
 
 .macro load_a(bhi,bmd,blo){
@@ -96,6 +96,63 @@
     sta address + 2
 }
 
+mByteToA:
+    sta a3
+    rts
+
+mByteToB:
+    sta b3
+    rts
+
+/*
+Load into A register
+24 bit start address
+x lo byte
+y hi byte
+returns: x/y next 24bit start address
+clobbers a
+*/
+mLoadA:
+    stx mla_ptr
+    stx mla_rsx
+    sty mla_ptr + 1
+    ldx #$02
+!loop:
+    lda mla_ptr: $ffff,x
+    sta a1,x
+    dex
+    bne !loop-
+    ldx mla_rsx: #$00
+    inx
+    bne !skip+
+    iny
+!skip:
+    rts
+
+/*
+Load into B register
+24 bit start address
+x lo byte
+y hi byte
+returns: x/y next 24bit start address
+clobbers a
+*/
+mLoadB:
+    stx mlb_ptr
+    stx mlb_rsx
+    sty mlb_ptr + 1
+    ldx #$02
+!loop:
+    lda mlb_ptr: $ffff,x
+    sta b1,x
+    dex
+    bne !loop-
+    ldx mlb_rsx: #$00
+    inx
+    bne !skip+
+    iny
+!skip:
+    rts
 
 
 /*

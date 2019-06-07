@@ -1,3 +1,5 @@
+.import source "./math.s"
+
 /*
 Notes on memory map:
 Code $0800 -> $3000											= Base Data $3000
@@ -8,6 +10,7 @@ Neurons hidden = 32 hiddens * 3 bytes						= $60 bytes
 Neurons output = 10 outputs * 3 bytes						= $1e bytes
 
 */
+
 
 
 
@@ -27,7 +30,9 @@ class Tinn:
 		self.x2 = [[random.random() - 0.5 for _ in range(nhid)] for _ in range(nops)]  # hidden to output layer weights
 		self.o = [0] * nops  # output layer
 
+*/
 
+/*
 def fprop(t: Tinn, in_: float) -> None:
 	"""Forward propagation."""
 	# Calculate hidden layer neuron values.
@@ -42,7 +47,12 @@ def fprop(t: Tinn, in_: float) -> None:
 		for j in range(t.nhid):
 			s += t.h[j] * t.x2[i][j]
 		t.o[i] = act(s)
+*/
+ldx #<
 
+
+
+/*
 def act(a: float) -> float:
 	"""Activation function."""
 	if a > 4:
@@ -55,3 +65,20 @@ def act(a: float) -> float:
 
 */
 
+
+.label hidden_layer_size = 32
+hidden_layer:
+.for(var i=0;i<hidden_layer_size;i++){
+	.byte $00, $00, $00 //24 bit fixed point
+}
+
+.label output_layer_size = 10
+output_layer:
+.for(var i=0;i<output_layer_size;i++){
+	.byte $00, $00, $00 //24 bit fixed point	
+}
+
+.import source "../output/biases.asm"
+.import source "../output/exp_lut.asm"
+.import source "../output/t_x1.asm"
+.import source "../output/t_x2.asm"
