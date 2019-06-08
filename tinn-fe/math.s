@@ -96,37 +96,59 @@
     sta address + 2
 }
 
-mByteToA:
+.macro mv_mul_a(){
+    lda r3
+    sta a1
+    lda r4
+    sta a2
+    lda r5
     sta a3
-    rts
+}
 
-mByteToB:
+.macro mv_mul_b(){
+    lda r3
+    sta b1
+    lda r4
+    sta b2
+    lda r5
     sta b3
-    rts
+}
+
+.macro mv_add_a(){
+    lda r1
+    sta a1
+    lda r2
+    sta a2
+    lda r3
+    sta a3
+}
+
+.macro mv_add_b(){
+    lda r1
+    sta b1
+    lda r2
+    sta b2
+    lda r3
+    sta b3
+}
+
 
 /*
 Load into A register
 24 bit start address
 x lo byte
 y hi byte
-returns: x/y next 24bit start address
-clobbers a
+clobbers a, x
 */
 mLoadA:
     stx mla_ptr
-    stx mla_rsx
     sty mla_ptr + 1
     ldx #$02
 !loop:
     lda mla_ptr: $ffff,x
-    sta a1,x
+    sta a1-1,x
     dex
     bne !loop-
-    ldx mla_rsx: #$00
-    inx
-    bne !skip+
-    iny
-!skip:
     rts
 
 /*
@@ -134,24 +156,17 @@ Load into B register
 24 bit start address
 x lo byte
 y hi byte
-returns: x/y next 24bit start address
-clobbers a
+clobbers a, x
 */
 mLoadB:
     stx mlb_ptr
-    stx mlb_rsx
-    sty mlb_ptr + 1
+    sty mla_ptr + 1
     ldx #$02
 !loop:
     lda mlb_ptr: $ffff,x
-    sta b1,x
+    sta b1-1,x
     dex
     bne !loop-
-    ldx mlb_rsx: #$00
-    inx
-    bne !skip+
-    iny
-!skip:
     rts
 
 
