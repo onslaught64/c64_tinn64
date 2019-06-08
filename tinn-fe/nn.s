@@ -27,6 +27,8 @@ def fprop(t: Tinn, in_: float) -> None:
 		for j in range(t.nhid):
 			s += t.h[j] * t.x2[i][j]
 		t.o[i] = act(s)
+
+Returns A winning index (0->A)
 */
 
 nnFProp:
@@ -131,6 +133,7 @@ nnFProp:
 	jsr nnActivation
 	mv_result((output_layer + (i*3)))
 }
+	jsr nnWinner
 	rts
 
 /*
@@ -257,6 +260,53 @@ nnActivation:
 	lda exp_lut_hi,x
 	sta r3
 	rts
+
+_winner:
+	.byte $00, $00, $00, $00
+
+/*
+returns winner in A
+*/
+nnWinner:
+	lda #$00
+	ldx #$00
+	ldy #$00
+!loop:
+	lda output_layer+2,x
+	cmp _winner+2
+	bcs !winner: //a>m
+	lda output_layer+1,x
+	cmp _winner+1
+	bcs !winner: 
+	lda output_layer,x
+	cmp _winner
+	bcs !Winner:
+!notWinner:
+	inx
+	inx
+	inx //skip ahead 3 bytes for 24bit
+	iny
+	cpx #(output_layer_size * 3)
+	bne !loop-
+	lda _winner+3
+	rts
+!winner:
+	lda output_layer+2,x
+	sta _winner+2
+	lda output_layer+1,x
+	sta _winner+1
+	lda output_layer,x
+	sta _winner
+	sty _winner+3
+	jmp !notWinner-
+
+
+
+
+	.for(var i=0;i<output_layer_size;i++){
+		
+	}
+
 
 
 .label input_layer_size = 256

@@ -423,4 +423,68 @@ mMul:
 //     rts
 
 
+/*
+http://codebase64.org/doku.php?id=base:bubble_sort_16-bit_elements
+adapted from this code for 24bit 
+;THIS SUBROUTINE ARRANGES THE 16-BIT ELEMENTS OF A LIST IN
+;ASCENDING ORDER.  THE STARTING ADDRESS OF THE LIST IS IN LOCATIONS
+;$30 AND $31.  THE LENGTH OF THE LIST IS IN THE FIRST BYTE OF THE LIST.
+;LOCATION $32 IS USED TO HOLD AN EXCHANGE FLAG.
+*/
+/*
+mSort:   
+    ldy #$00     ;TURN EXCHANGE FLAG OFF (= 0)
+    sty $32
+    lda ($30),y  ;FETCH ELEMENT COUNT
+    tay          ;  AND USE IT TO INDEX LAST ELEMENT
+NXTEL:
+    lda ($30),y  ;FETCH MSBY
+pha          ;  AND PUSH IT ONTO STACK
+dey
+lda ($30),y  ;FETCH LSBY
+sec
+dey
+dey
+sbc ($30),y  ; AND SUBTRACT LSBY OF PRECEDING ELEMENT
+pla
+iny
+sbc ($30),y  ; AND SUBTRACT MSBY OF PRECEDING ELEMENT
+bcc SWAP     ;ARE THESE ELEMENTS OUT OF ORDER?
+cpy #$02     ;NO. LOOP UNTIL ALL ELEMENTS COMPARED
+bne NXTEL
+bit $32      ;EXCHANGE FLAG STILL OFF?
+bmi SORT16   ;NO. GO THROUGH LIST AGAIN
+rts
 
+;THIS ROUTINE BELOW EXCHANGES TWO 16-BIT ELEMENTS IN MEMORY
+
+SWAP     LDA ($30),Y  ;SAVE MSBY1 ON STACK
+         PHA
+         DEY
+         LDA ($30),Y  ;SAVE LSBY1 ON STACK
+         PHA
+         INY
+         INY
+         INY
+         LDA ($30),Y  ;SAVE MSBY2 ON STACK
+         PHA
+         DEY
+         LDA ($30),Y  ;LOAD LSBY2 INTO ACCUMULATOR
+         DEY
+         DEY
+         STA ($30),Y  ; AND STORE IT AT LSBY1 POSITION
+         LDX #$03
+SLOOP    INY          ;STORE THE OTHER THREE BYTES
+         PLA
+         STA ($30),Y
+         DEX
+         BNE SLOOP    ;LOOP UNTIL THREE BYTE STORED
+         LDA #$FF     ;TURN EXCHANGE FLAG ON (= -1)
+         STA $32
+         CPY #04      ;WAS EXCHANGE DONE AT START OF LIST?
+         BEQ SORT16   ;YES. GO THROUGH LIST AGAIN.
+         DEY          ;NO. COMPARE NEXT ELEMENT PAIR
+         DEY
+         JMP NXTEL
+
+         */
