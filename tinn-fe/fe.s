@@ -44,6 +44,7 @@ start:
 
 	:setupInterrupt(irq, rasterLine) // last six chars (with a few raster lines to stabalize raster)
 !loop:
+    jsr funcKeys
     jmp !loop-
 
 /********************************************
@@ -54,19 +55,11 @@ irq:
 	:startInterrupt()
 	//:doubleIRQ(rasterLine + 1)
     
-    lda #$00
-    sta $d020
+    inc $d020
     jsr music.play
-    lda #$0f 
-    sta $d020
+    dec $d020
     
-    lda #$00
-    sta $d020
-    jsr funcDrawScreen
-    lda #$0f
-    sta $d020
-
-    jsr funcKeys
+    //jsr funcKeys
     ldy CURSOR_Y
     ldx CURSOR_X
     jsr funcPositionCursor
@@ -109,6 +102,8 @@ funcInitData:
     lda #$30 //
     sta REG_SPRITE_DATA_PTR_0
 
+    //init the screen
+    jsr funcDrawScreen
     rts
 
 
@@ -396,12 +391,16 @@ funcKeys:
 	rts
 !return:
     //send to AI
+    inc $d020
+    jsr nnFProp
+    dec $d020
 !skip:
 	rts
 !space:
     ldx CURSOR_X
     ldy CURSOR_Y
     jsr funcDrawPixel
+    jsr funcDrawScreen
 !skip:
 	rts
 
@@ -412,6 +411,10 @@ TOGGLE_STATE:
 .byte $00
 //00 everything
 //ff nothing
+
+//import neural net!!!
+.pc = * "Neural Net"
+.import source "./nn.s"
 
 
 
@@ -485,11 +488,7 @@ PIXEL_LUT:
 // 11
 // 11
 
-.align $100
-SCREEN_BUFFER:
-.for (var i=0;i<(PLOT_WIDTH*PLOT_HEIGHT);i++) {
-    .byte $00
-}
+
 
 .align $100
 .label base_cursor_x = $18 + (PLOTTER_X_OFFSET * 8)
@@ -529,7 +528,7 @@ CURSOR_COLOR_LUT:
 .fill music.size, music.getData(i)
 
 //SPRITE CURSOR
-.pc=$0c00
+.pc=$0c00 "Sprite Cursor"
 .byte %11110000, %00000000, %00000000
 .byte %10010000, %00000000, %00000000
 .byte %10010000, %00000000, %00000000

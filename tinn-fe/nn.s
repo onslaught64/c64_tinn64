@@ -1,16 +1,11 @@
 .import source "./math.s"
 
 /*
-Notes on memory map:
-Code $0800 -> $3000											= Base Data $3000
-Model input->hidden = 256 inputs * 32 hiddens * 3 bytes 	= $6000 bytes		$3000 - $9000 
-Model hidden->output = 32 hiddens * 10 outputs * 3 bytes 	= $3c0 bytes		$9000 - $
-Neurons input = bytemap from picture = 256 bytes 			= $ff bytes			
-Neurons hidden = 32 hiddens * 3 bytes						= $60 bytes
-Neurons output = 10 outputs * 3 bytes						= $1e bytes
-
+Labels and config
 */
-
+.label input_layer_size = 256
+.label hidden_layer_size = 32
+.label output_layer_size = 10
 
 /*
 def fprop(t: Tinn, in_: float) -> None:
@@ -45,7 +40,7 @@ nnFProp:
 	lda t_biases + 2
 	sta hidden_layer,x
 	inx
-	cpx #(hidden_layer_size * 3)
+	cpx #hidden_layer_size * 3
 	bne !loop-
 
 //reset loop values below
@@ -66,19 +61,19 @@ nnFProp:
 	jsr mLoadB
 	jsr mMul
 	mv_mul_a()
-	ldx #< (hidden_layer + (i*3)) 
-	ldy #> (hidden_layer + (i*3))
+	ldx #< hidden_layer + (i*3)
+	ldy #> hidden_layer + (i*3)
 	jsr mLoadB
 	jsr mAdd //add to existing hidden layer value
-	mv_result((hidden_layer + (i*3)))
+	mv_result(hidden_layer + (i*3))
 	inc _nip
 	bne !loop-
 	//activation function here
-	lda (hidden_layer + (i*3))+2
-	ldy (hidden_layer + (i*3))+1
-	ldx (hidden_layer + (i*3))
+	lda hidden_layer + (i*3) +2
+	ldy hidden_layer + (i*3) +1
+	ldx hidden_layer + (i*3)
 	jsr nnActivation
-	mv_result((hidden_layer + (i*3)))
+	mv_result(hidden_layer + (i*3))
 }
 //set up biases in the output layer first
 	ldx #$00
@@ -93,7 +88,7 @@ nnFProp:
 	lda t_biases + 5
 	sta output_layer,x
 	inx
-	cpx #(output_layer_size * 3)
+	cpx #output_layer_size * 3
 	bne !loop-
 //reset output layer call
 	jsr nnResetX2
@@ -116,22 +111,22 @@ nnFProp:
 	jsr mLoadB
 	jsr mMul
 	mv_mul_a()
-	ldx #< (output_layer + (i*3)) 
-	ldy #> (output_layer + (i*3))
+	ldx #< output_layer + (i*3)
+	ldy #> output_layer + (i*3)
 	jsr mLoadB
 	jsr mAdd //add to existing hidden layer value
-	mv_result((output_layer + (i*3)))
+	mv_result(output_layer + (i*3))
 	inc _nhid
 	inc _nhid
 	inc _nhid
 	lda _nhid
 	cmp #(hidden_layer_size * 3)
 	bne !loop-
-	lda (output_layer + (i*3))+2
-	ldy (output_layer + (i*3))+1
-	ldx (output_layer + (i*3))
+	lda output_layer + (i*3) + 2
+	ldy output_layer + (i*3) + 1
+	ldx output_layer + (i*3)
 	jsr nnActivation
-	mv_result((output_layer + (i*3)))
+	mv_result(output_layer + (i*3))
 }
 	jsr nnWinner
 	rts
@@ -271,16 +266,19 @@ nnWinner:
 	lda #$00
 	ldx #$00
 	ldy #$00
+	sta _winner
+	sta _winner + 1
+	sta _winner + 2
 !loop:
 	lda output_layer+2,x
 	cmp _winner+2
-	bcs !winner: //a>m
+	bcs !winner+ //a>m hi
 	lda output_layer+1,x
 	cmp _winner+1
-	bcs !winner: 
+	bcs !winner+  //a>m med
 	lda output_layer,x
 	cmp _winner
-	bcs !Winner:
+	bcs !winner+ //a>m lo
 !notWinner:
 	inx
 	inx
@@ -301,34 +299,26 @@ nnWinner:
 	jmp !notWinner-
 
 
-
-
-	.for(var i=0;i<output_layer_size;i++){
-		
-	}
-
-
-
-.label input_layer_size = 256
-
-.label hidden_layer_size = 32
 hidden_layer:
 .for(var i=0;i<hidden_layer_size;i++){
 	.byte $00, $00, $00 //24 bit fixed point
 }
 
-.label output_layer_size = 10
 output_layer:
 .for(var i=0;i<output_layer_size;i++){
 	.byte $00, $00, $00 //24 bit fixed point	
 }
 
+/*this should be in fe.s but, well, we need it here*/
 .align $100
 SCREEN_BUFFER:
 .for (var i=0;i<$100;i++) {
     .byte $00
 }
 
+/*
+Load up all the generated data
+*/
 .import source "../output/biases.asm"
 .import source "../output/exp_lut.asm"
 .import source "../output/t_x1.asm"
