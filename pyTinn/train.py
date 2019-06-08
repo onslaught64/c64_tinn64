@@ -102,15 +102,6 @@ print(' '.join(map(str, tg)))
 print(' '.join(map(str, pd)))
 
 # export KickAss fixed point lookups, neurons and biases 
-output = open("../output/exp_lut.asm","w")
-print()
-print("Rendering to file...")
-output.write("// Activation Exponent Lookup: \n")
-output.write(".align $100 \n")
-output.write("exp_lut: \n")
-for i in range(256):
-        do_output(output,( 1 / (1 + math.exp(-((8 * (i/256))-4)))))
-output.close()
 
 output = open("../output/biases.asm","w")
 output.write("// Biases: \n")

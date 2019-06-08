@@ -64,3 +64,13 @@ class FixedPointNumber(object):
         output = output + str(self.fp_value / 65536)
         return output
 
+    def render_selected_byte(self, index):
+        output = ".byte "
+        output = output + " %" + self.render_byte_as_bin(index) # 8
+        output = output + "//"
+        output = output + " FIXED: "
+        output = output + str(hex(self.fp_value))
+        output = output + "\t\t FLOAT "
+        output = output + str(self.fp_value / 65536)
+        return output
+
