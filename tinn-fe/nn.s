@@ -51,6 +51,8 @@ nnFProp:
 
 //multiply each input on a hidden layer node
 .for(var i=0; i<hidden_layer_size; i++){
+	lda #$00
+	sta _nip
 !loop:
 	ldx _nip: #$00
 	lda SCREEN_BUFFER,x
@@ -70,8 +72,11 @@ nnFProp:
 	inc _nip
 	bne !loop-
 	//activation function here
-
-
+	lda (hidden_layer + (i*3))+2
+	ldy (hidden_layer + (i*3))+1
+	ldx (hidden_layer + (i*3))
+	jsr nnActivation
+	mv_result((hidden_layer + (i*3)))
 }
 //set up biases in the output layer first
 	ldx #$00
@@ -93,6 +98,8 @@ nnFProp:
 
 //multiply each input on a output layer node
 .for(var i=0; i<output_layer_size; i++){
+	lda #$00
+	sta _nhid
 !loop:
 	ldx _nhid: #$00
 	lda hidden_layer,x
@@ -118,8 +125,11 @@ nnFProp:
 	lda _nhid
 	cmp #(hidden_layer_size * 3)
 	bne !loop-
-
-
+	lda (output_layer + (i*3))+2
+	ldy (output_layer + (i*3))+1
+	ldx (output_layer + (i*3))
+	jsr nnActivation
+	mv_result((output_layer + (i*3)))
 }
 	rts
 
@@ -188,6 +198,8 @@ def act(a: float) -> float:
 a = value hi byte
 y = value mid byte
 x = value lo byte
+
+returns result using math
 */
 nnActivation:
 	sta a3
@@ -235,8 +247,16 @@ nnActivation:
 	asl r1
 	rol r2
 	rol r3
-	
-
+	//lookup exp using r3
+	lda r3
+	tax 
+	lda exp_lut_lo,x
+	sta r1
+	lda exp_lut_med,x
+	sta r2
+	lda exp_lut_hi,x
+	sta r3
+	rts
 
 
 .label input_layer_size = 256

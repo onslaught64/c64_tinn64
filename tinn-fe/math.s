@@ -146,7 +146,7 @@ mLoadA:
     ldx #$02
 !loop:
     lda mla_ptr: $ffff,x
-    sta a1-1,x
+    sta a1+1,x
     dex
     bne !loop-
     rts
@@ -164,11 +164,10 @@ mLoadB:
     ldx #$02
 !loop:
     lda mlb_ptr: $ffff,x
-    sta b1-1,x
+    sta b1+1,x
     dex
     bne !loop-
     rts
-
 
 /*
 24 bit signed add
