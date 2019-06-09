@@ -65,6 +65,9 @@ This exports a specially crafted set of lookup tables that are used when the inp
 
 `activation value = 1 / 1 + e^-input value` which, you can imagine would suck to calculate on a 6502, however the actual range of values that fall inside the curve between 0 and 1 is an input range of 8, so, hey, we calculate the activation function for the input range -4 to +4 in a lookup table instead.
 
+
+Actually, to ensure that the AI is trained using the same activation function, this lookup strategy is also used in the modified pyTinn Python training code for forward propoagation. 
+
 This great article on activation functions helps a lot:
 https://towardsdatascience.com/activation-functions-neural-networks-1cbd9f8d91d6
 
