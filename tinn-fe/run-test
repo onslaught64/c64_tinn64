@@ -1,3 +1,0 @@
-kick test-math.s
-x64 test-math.prg >/dev/null
-
