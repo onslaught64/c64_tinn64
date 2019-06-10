@@ -54,9 +54,9 @@ class FixedPointNumber(object):
 
     def __str__(self):
         output = ".byte "
-        output = output + " %" + self.render_byte_as_bin(0) # 8
+        output = output + " %" + self.render_byte_as_bin(2) # 8
         output = output + ", %" + self.render_byte_as_bin(1) # 16 
-        output = output + ", %" + self.render_byte_as_bin(2) # 24
+        output = output + ", %" + self.render_byte_as_bin(0) # 24
         output = output + "//"
         output = output + " FIXED: "
         output = output + str(hex(self.fp_value))

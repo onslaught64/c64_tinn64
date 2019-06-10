@@ -67,32 +67,16 @@ def rsz(source):
 
 img_lib = list()
 img_lib.append("full_numpy_bitmap_cat.npy")
-img_lib.append("full_numpy_bitmap_coffee cup.npy")
-img_lib.append("full_numpy_bitmap_computer.npy")
-img_lib.append("full_numpy_bitmap_police car.npy")
-img_lib.append("full_numpy_bitmap_teddy-bear.npy")
-img_lib.append("full_numpy_bitmap_underwear.npy")
-img_lib.append("full_numpy_bitmap_snake.npy")
-img_lib.append("full_numpy_bitmap_square.npy")
-img_lib.append("full_numpy_bitmap_submarine.npy")
-img_lib.append("full_numpy_bitmap_toilet.npy")
 
 img_idx = list()
-img_idx.append("1 0 0 0 0 0 0 0 0 0") #cat
-img_idx.append("0 1 0 0 0 0 0 0 0 0") #coffee
-img_idx.append("0 0 1 0 0 0 0 0 0 0") #computer
-img_idx.append("0 0 0 1 0 0 0 0 0 0") #po po
-img_idx.append("0 0 0 0 1 0 0 0 0 0") #teddy 
-img_idx.append("0 0 0 0 0 1 0 0 0 0") #undies
-img_idx.append("0 0 0 0 0 0 1 0 0 0") #snake
-img_idx.append("0 0 0 0 0 0 0 1 0 0") #square
-img_idx.append("0 0 0 0 0 0 0 0 1 0") #sub
-img_idx.append("0 0 0 0 0 0 0 0 0 1") #dunny
+img_idx.append("0 1 0 0 0 0 0 0 0 0") #cat
 
-output = open("training.data","w")
+output = open("training_cats.data","w")
 for index in range(len(img_lib)):
     img_set = np.load(img_lib[index])
     max_count = len(img_set)
+    if max_count > 1000:
+        max_count = 1000
     cur_count = 0
     print("Processing " + img_lib[index])
     for ptr in range(max_count):

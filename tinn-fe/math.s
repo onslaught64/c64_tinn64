@@ -140,17 +140,20 @@ x lo byte
 y hi byte
 clobbers a, x
 */
+
+/*
 mLoadA:
     stx mla_ptr
     sty mla_ptr + 1
-    ldx #$02
+    ldx #$00
 !loop:
     lda mla_ptr: $ffff,x
-    sta a1+1,x
-    dex
+    sta a1,x
+    inx
+    cpx #$03
     bne !loop-
     rts
-
+*/
 /*
 Load into B register
 24 bit start address
@@ -158,16 +161,20 @@ x lo byte
 y hi byte
 clobbers a, x
 */
+/*
+commented out since I screwed up the exporter... :(
 mLoadB:
     stx mlb_ptr
     sty mla_ptr + 1
-    ldx #$02
+    ldx #$00
 !loop:
     lda mlb_ptr: $ffff,x
-    sta b1+1,x
-    dex
+    sta b1,x
+    inx
+    cpx #$03
     bne !loop-
     rts
+*/
 
 /*
 24 bit signed add

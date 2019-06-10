@@ -394,6 +394,9 @@ funcKeys:
     inc $d020
     jsr nnFProp
     dec $d020
+    
+    sta $c000
+
 !skip:
 	rts
 !space:

@@ -76,11 +76,14 @@ nops = 10
 rate = 1.0
 anneal = 0.998
 print("loading training data")
-data = Data('../data/training.data', nips, nops)
+filename = "training.data"
+if len(sys.argv) > 1:
+	filename = sys.argv[1]
+data = Data('../data/' + filename, nips, nops)
 print("model init")
 t = tinn.Tinn(nips, nhid, nops)
 
-for _ in range(5):
+for _ in range(1):
 	print("Shuffle...")
 	data.shuffle()
 	error = 0

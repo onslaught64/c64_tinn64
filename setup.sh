@@ -55,9 +55,7 @@ conda update -y -n base -c defaults conda
 echo "Install PIP Packages"
 pip install --upgrade pip
 pip install cython
-pip install pandas
 pip install numpy
-pip install progress
 
 echo "Set PYTHONPATH"
 export PYTHONPATH=$PYTHONPATH:data:pyTinn

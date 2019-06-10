@@ -7,6 +7,22 @@ Labels and config
 .label hidden_layer_size = 32
 .label output_layer_size = 10
 
+//this fixes a bug in the train.py exporter
+nnLoadBReversed:
+    stx nnlb_ptr
+    sty nnlb_ptr + 1
+    ldx #$00
+	ldy #$02
+!loop:
+    lda nnlb_ptr: $ffff,x
+    sta b1,y
+	dey 
+    inx
+    cpx #$03
+    bne !loop-
+    rts
+
+
 /*
 def fprop(t: Tinn, in_: float) -> None:
 	"""Forward propagation."""
@@ -24,6 +40,17 @@ def fprop(t: Tinn, in_: float) -> None:
 		t.o[i] = act(s)
 
 Returns A winning index (0->A)
+
+0 full_numpy_bitmap_cat.npy
+1 full_numpy_bitmap_coffee cup.npy
+2 full_numpy_bitmap_computer.npy
+3 full_numpy_bitmap_police car.npy
+4 full_numpy_bitmap_rainbow.npy
+5 full_numpy_bitmap_underwear.npy
+6 full_numpy_bitmap_snake.npy
+7 full_numpy_bitmap_square.npy
+8 full_numpy_bitmap_submarine.npy
+9 full_numpy_bitmap_toilet.npy
 */
 
 nnFProp:
@@ -58,12 +85,12 @@ nnFProp:
 	sta a2
 	sta a1
 	jsr nnReadX1
-	jsr mLoadB
+	jsr nnLoadBReversed
 	jsr mMul
 	mv_mul_a()
 	ldx #< hidden_layer + (i*3)
 	ldy #> hidden_layer + (i*3)
-	jsr mLoadB
+	jsr nnLoadBReversed
 	jsr mAdd //add to existing hidden layer value
 	mv_result(hidden_layer + (i*3))
 	inc _nip
@@ -108,12 +135,12 @@ nnFProp:
 	lda hidden_layer,x
 	sta a3
 	jsr nnReadX2
-	jsr mLoadB
+	jsr nnLoadBReversed
 	jsr mMul
 	mv_mul_a()
 	ldx #< output_layer + (i*3)
 	ldy #> output_layer + (i*3)
-	jsr mLoadB
+	jsr nnLoadBReversed
 	jsr mAdd //add to existing hidden layer value
 	mv_result(output_layer + (i*3))
 	inc _nhid
@@ -128,7 +155,7 @@ nnFProp:
 	jsr nnActivation
 	mv_result(output_layer + (i*3))
 }
-	jsr nnWinner
+	jsr nnWinner //go find the winner and return it in the A
 	rts
 
 /*
@@ -203,7 +230,8 @@ nnActivation:
 	sta a3
 	sty a2
 	stx a1
-	lda #$04
+	lda #$04 // +4 to shift the input value into positive range so, anything between 0 and 8 shoudl
+			// be used as lookup of the EXP function, otherwise, just max or min the return value
 	sta b3
 	lda #$00
 	sta b2
@@ -232,22 +260,27 @@ nnActivation:
 	ldy #$00
 	rts
 !skip: 
-	//shift up the index for the exponent lookup
+	//shift up the index for the exponent lookup ( /8 * 256 is the same as <<<<)
 	asl r1
 	rol r2
-	rol r3
+	rol r3 //< 
 	asl r1
 	rol r2
-	rol r3
+	rol r3 //<
 	asl r1
 	rol r2
-	rol r3
+	rol r3 //<
 	asl r1
 	rol r2
-	rol r3
-	//lookup exp using r3
+	rol r3 //<
+	asl r1
+	rol r2
+	rol r3 //<
+	//lookup exp using r3 (we don't care about the fraction, we just want the int like in the python code)
 	lda r3
-	tax 
+	tax
+
+	//due to the index read nature of this table, we made it 3 separate luts 
 	lda exp_lut_lo,x
 	sta r1
 	lda exp_lut_med,x
@@ -257,7 +290,9 @@ nnActivation:
 	rts
 
 _winner:
-	.byte $00, $00, $00, $00
+	.byte $00, $00, $00
+_winnerIndex:
+	.byte $00
 
 /*
 returns winner in A
@@ -269,25 +304,19 @@ nnWinner:
 	sta _winner
 	sta _winner + 1
 	sta _winner + 2
+	sta _winnerIndex
 !loop:
+	clc
 	lda output_layer+2,x
 	cmp _winner+2
-	bcs !winner+ //a>m hi
+	bcc !notWinner+ //a < m hi
 	lda output_layer+1,x
 	cmp _winner+1
-	bcs !winner+  //a>m med
+	bcc !notWinner+  //a < m med
 	lda output_layer,x
 	cmp _winner
-	bcs !winner+ //a>m lo
-!notWinner:
-	inx
-	inx
-	inx //skip ahead 3 bytes for 24bit
-	iny
-	cpx #(output_layer_size * 3)
-	bne !loop-
-	lda _winner+3
-	rts
+	bcc !notWinner+ //a < m lo
+
 !winner:
 	lda output_layer+2,x
 	sta _winner+2
@@ -295,15 +324,27 @@ nnWinner:
 	sta _winner+1
 	lda output_layer,x
 	sta _winner
-	sty _winner+3
-	jmp !notWinner-
+	sty _winnerIndex
 
+!notWinner:
+	inx
+	inx
+	inx //skip ahead 3 bytes for 24bit
+	iny
+	cpx #output_layer_size * 3
+	bne !loop-
+	lda _winnerIndex
+	rts
 
+.align $100
+.pc = * "Hidden Layer"
 hidden_layer:
 .for(var i=0;i<hidden_layer_size;i++){
 	.byte $00, $00, $00 //24 bit fixed point
 }
 
+.align $100
+.pc = * "Output Layer"
 output_layer:
 .for(var i=0;i<output_layer_size;i++){
 	.byte $00, $00, $00 //24 bit fixed point	
@@ -311,6 +352,7 @@ output_layer:
 
 /*this should be in fe.s but, well, we need it here*/
 .align $100
+.pc = * "SCREEN BUFFER (Input layer feed)"
 SCREEN_BUFFER:
 .for (var i=0;i<$100;i++) {
     .byte $00
@@ -319,7 +361,12 @@ SCREEN_BUFFER:
 /*
 Load up all the generated data
 */
+.pc = * "Biases"
 .import source "../output/biases.asm"
+.align $100
+.pc = * "EXP Lut"
 .import source "../output/exp_lut.asm"
+.pc = * "X1"
 .import source "../output/t_x1.asm"
+.pc = * "X2"
 .import source "../output/t_x2.asm"
