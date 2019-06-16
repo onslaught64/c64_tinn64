@@ -83,7 +83,9 @@ data = Data('../data/' + filename, nips, nops)
 print("model init")
 t = tinn.Tinn(nips, nhid, nops)
 
-for _ in range(1):
+
+
+for _ in range(2):
 	print("Shuffle...")
 	data.shuffle()
 	error = 0
@@ -91,18 +93,21 @@ for _ in range(1):
 	i = 0
 	count = len(data.in_)
 	for in_, tg in zip(data.in_, data.tg):
-		error += tinn.xttrain(t, in_, tg, rate)
+		if i > 10:
+			error += tinn.xttrain(t, in_, tg, rate)
 		update_progress(i/count)
 		i += 1
 	print()
 	print("error " + str(error/len(data)) + " :: learning rate " + str(rate))
 	rate *= anneal
 
-in_ = data.in_[0]
-tg = data.tg[0]
-pd = tinn.xtpredict(t, in_)
-print(' '.join(map(str, tg)))
-print(' '.join(map(str, pd)))
+for i in range(10):
+	in_ = data.in_[i]
+	tg = data.tg[i]
+	pd = tinn.xtpredict(t, in_)
+	print(' '.join(map(str, tg)))
+	print(' '.join(map(str, pd)))
+
 
 # export KickAss fixed point lookups, neurons and biases 
 
