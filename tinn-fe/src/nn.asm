@@ -1,4 +1,4 @@
-.import source "./math.s"
+.import source "./math.asm"
 
 /*
 Labels and config
@@ -362,11 +362,11 @@ SCREEN_BUFFER:
 Load up all the generated data
 */
 .pc = * "Biases"
-.import source "../output/biases.asm"
+.import source "../../output/biases.asm"
 .align $100
 .pc = * "EXP Lut"
-.import source "../output/exp_lut.asm"
+.import source "../../output/exp_lut.asm"
 .pc = * "X1"
-.import source "../output/t_x1.asm"
+.import source "../../output/t_x1.asm"
 .pc = * "X2"
-.import source "../output/t_x2.asm"
+.import source "../../output/t_x2.asm"

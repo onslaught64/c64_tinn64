@@ -1,5 +1,5 @@
 #!/bin/bash
-echo
+echo "old depricated project builder"
 echo "---------------------------------"
 echo "Project Builder"
 echo "---------------------------------"

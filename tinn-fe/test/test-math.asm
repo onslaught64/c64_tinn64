@@ -1,4 +1,4 @@
-.import source "./math.s"
+.import source "../src/math.asm"
 
 .pc = $0801 "Basic Upstart"
 :BasicUpstart(start) // 10 sys$0810

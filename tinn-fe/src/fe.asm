@@ -15,7 +15,7 @@ Default-segment:
   $2d02-$2f6c Datasets
 */
 
-.var music = LoadSid("Island_Lore.sid")
+.var music = LoadSid("../rsrc/Island_Lore.sid")
 _outputMusicInfo()
 
 //Values
@@ -417,7 +417,7 @@ TOGGLE_STATE:
 
 //import neural net!!!
 .pc = * "Neural Net"
-.import source "./nn.s"
+.import source "./nn.asm"
 
 
 

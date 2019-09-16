@@ -129,5 +129,5 @@ start:
     nop
 }
 
-.import source "./nn.s"
+.import source "../src/nn.asm"
 
