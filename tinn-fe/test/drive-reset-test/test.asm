@@ -37,7 +37,7 @@ sta $d020
     sta $01
     cli 
 
-    jsr error_status
+    jsr proper_error_status
 lda #$05
 sta $d020
 
@@ -88,77 +88,47 @@ PIXEL_LUT:
 .byte 254 //1110
 .byte 160 //1111
 
-error_status:
-    lda #$08
-    sta $ba
-    lda #$00
-    sta $90       // clear STATUS flags
-    lda $BA       // device number
-    jsr $FFB1     // call LISTEN
-    lda #$0F      // secondary address 15 (command channel)
-    jsr $FF93     // call SECLSN (SECOND)
-    jsr $FFAE     // call UNLSN
-    lda $90       // get STATUS flags
-    bne devnp    // device not present
+/*
+This version seems to not work (locks up)
+*/
 
-    lda $BA       // device number
-    jsr $FFB4     // call TALK
-    lda #$0F      // secondary address 15 (error channel)
-    jsr $FF96     // call SECTLK (TKSA)
-loop:  
-    lda $90       // get STATUS flags
-    bne eof      // either EOF or error
-    jsr $FFA5     // call IECIN (get byte from IEC bus)
-    jsr $FFD2     // call CHROUT (print byte to screen)
-    jmp loop     // next byte
-eof:
-    jsr $FFAB     // call UNTLK
-    lda #$01
-    sta $d020
+cmd:
+.text "I"
+
+proper_error_status:
+    clc
+    lda #$01      // no filename
+    ldx #<cmd
+    ldy #>cmd
+    jsr $FFBD     // call SETNAM
+    lda #$0F      // file number 15
+    ldx #$08      // default to device 8
+    ldy #$0F      // secondary address 15 (error channel)
+    jsr $FFBA     // call SETLFS
+    jsr $FFC0     // call OPEN
+    //bcs !error+    // if carry set, the file could not be opened
+
+    ldx #$0F      // filenumber 15
+    jsr $FFC3     
+
+// !loop:
+//     jsr $FFB7     // call READST (read status byte)
+//     bne !eof+     // either EOF or read error
+//     jsr $FFCF     // call CHRIN (get a byte from file)
+//     jsr $FFD2     // call CHROUT (print byte to screen)
+//     jmp !loop-    // next byte
+
+// !eof:
+!close:
+    lda #$0F      // filenumber 15
+    jsr $FFC3     // call CLOSE
+
+    jsr $FFCC     // call CLRCHN
     rts
-devnp:
-    //... device not present handling ...
-    lda #$02
-    sta $d020
-    sta $d021
-    rts
 
- LDA #$00      ; no filename
-        LDX #$00
-        LDY #$00
-        JSR $FFBD     ; call SETNAM
-
-        LDA #$0F      ; file number 15
-        LDX $BA       ; last used device number
-        BNE .skip
-        LDX #$08      ; default to device 8
-.skip   LDY #$0F      ; secondary address 15 (error channel)
-        JSR $FFBA     ; call SETLFS
-
-        JSR $FFC0     ; call OPEN
-        BCS .error    ; if carry set, the file could not be opened
-
-        LDX #$0F      ; filenumber 15
-        JSR $FFC6     ; call CHKIN (file 15 now used as input)
-
-.loop   JSR $FFB7     ; call READST (read status byte)
-        BNE .eof      ; either EOF or read error
-        JSR $FFCF     ; call CHRIN (get a byte from file)
-        JSR $FFD2     ; call CHROUT (print byte to screen)
-        JMP .loop     ; next byte
-
-.eof
-.close
-        LDA #$0F      ; filenumber 15
-        JSR $FFC3     ; call CLOSE
-
-        JSR $FFCC     ; call CLRCHN
-        RTS
-.error
-        ; Akkumulator contains BASIC error code
-
-        ; most likely error:
-        ; A = $05 (DEVICE NOT PRESENT)
-
-        ... error handling for open errors ...
-        JMP .close    ; even if OPEN failed, the file has to be closed
+!error:
+    // Akkumulator contains BASIC error code
+    // most likely error:
+    // A = $05 (DEVICE NOT PRESENT)
+    sta $0400 //put error at top left char
+    jmp !close-    // even if OPEN failed, the file has to be closed
