@@ -1,134 +1,74 @@
 .pc =$1000 "Program"
 start:
-    ldx #$00
-!loop:
-    lda #160
-    ldy #$00
-    jsr write
-    
-    lda PIXEL_LUT,x
-    ldy #$01
-    jsr write
-
-    lda #160
-    ldy #$02
-    jsr write
-    
-    txa
-    and #$01
-    ldy #$00
-    jsr color
-    ldy #$02
-    jsr color
-
-    jsr newline
-    inx
-    cpx #$10
-    bne !loop-
-
-
+    ldx #< txt_1
+    ldy #> txt_1
+    jsr print
     jsr $c90 //load a demo part
-lda #$04
-sta $d020
+    ldx #< txt_2
+    ldy #> txt_2
+    jsr print
+    jsr $c90
+    ldx #< txt_3
+    ldy #> txt_3
+    jsr print
+    jsr $c90
 
+    jsr $cc00 //init loader
+    ldx #< txt_4
+    ldy #> txt_4
+    jsr print
 
-    sei
-    lda #$37
-    sta $01
-    cli 
+    ldx #'0'
+    ldy #'1'
+    lda #$70
+    sta $2f
+    lda #$00
+    sta $2e
+    jsr $cf00 //perform the load to $7000
 
-    jsr proper_error_status
-lda #$05
-sta $d020
+    ldx #< txt_5
+    ldy #> txt_5
+    jsr print
 
-!end:
-    jmp !end-
+    jsr $7000 //something should load to $7000
 
-write:
-    sta offs: $0400,y
-    rts
+    //this should never be run
+end:
+    inc $d020
+    jmp end
 
-color:
-    sta coffs: $d800,y
-    rts
-
-newline:
+print:
+    stx print_ptr
+    sty print_ptr + 1
+    ldx #$00
+loop:
+    lda print_ptr: $ffff,x
+    beq finish
+    sta output_ptr: $0400,x
+    inx
+    jmp loop
+finish:
     clc
-    lda offs
+    lda output_ptr
     adc #$28
-    sta offs
-    bcc !skip+
-    inc offs + 1
-!skip:
-    clc
-    lda coffs
-    adc #$28
-    sta coffs
-    bcc !skip+
-    inc coffs + 1
-!skip:
+    sta output_ptr
+    lda output_ptr + 1 //carry the high byte 
+    adc #$00
+    sta output_ptr + 1
     rts
 
-
-PIXEL_LUT:
-.byte 32  //0000 
-.byte 126 //0001
-.byte 124 //0010
-.byte 226 //0011
-.byte 123 //0100
-.byte 97  //0101
-.byte 255 //0110
-.byte 236 //0111
-.byte 108 //1000
-.byte 127 //1001
-.byte 225 //1010
-.byte 251 //1011
-.byte 98  //1100
-.byte 252 //1101
-.byte 254 //1110
-.byte 160 //1111
-
-/*
-This version seems to not work (locks up)
-*/
-
-cmd:
-.text "I"
-
-proper_error_status:
-    clc
-    lda #$01      // no filename
-    ldx #<cmd
-    ldy #>cmd
-    jsr $FFBD     // call SETNAM
-    lda #$0F      // file number 15
-    ldx #$08      // default to device 8
-    ldy #$0F      // secondary address 15 (error channel)
-    jsr $FFBA     // call SETLFS
-    jsr $FFC0     // call OPEN
-    //bcs !error+    // if carry set, the file could not be opened
-
-    ldx #$0F      // filenumber 15
-    jsr $FFC3     
-
-// !loop:
-//     jsr $FFB7     // call READST (read status byte)
-//     bne !eof+     // either EOF or read error
-//     jsr $FFCF     // call CHRIN (get a byte from file)
-//     jsr $FFD2     // call CHROUT (print byte to screen)
-//     jmp !loop-    // next byte
-
-// !eof:
-!close:
-    lda #$0F      // filenumber 15
-    jsr $FFC3     // call CLOSE
-
-    jsr $FFCC     // call CLRCHN
-    rts
-
-!error:
-    // Akkumulator contains BASIC error code
-    // most likely error:
-    // A = $05 (DEVICE NOT PRESENT)
-    sta $0400 //put error at top left char
-    jmp !close-    // even if OPEN failed, the file has to be closed
+txt_1:
+    .text "first part loaded"
+    .byte $00
+txt_2:
+    .text "second part loaded"
+    .byte $00
+txt_3:
+    .text "loader part loaded"
+    .byte $00
+txt_4:
+    .text "loader initialised, loading..."
+    .byte $00
+txt_5:
+    .text "loader complete!"
+    .byte $00

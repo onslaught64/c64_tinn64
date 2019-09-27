@@ -4,3 +4,5 @@ test.prg
 
 test.prg 8000 2
 
+../../rsrc/loaderfixed.prg cc00 2
+

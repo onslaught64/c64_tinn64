@@ -9,9 +9,12 @@ all: disk.d64
 test.prg: test.asm
 		kick $<
 
-disk.d64: script test.prg 
+01.prg: 01.asm
+		kick $<
+
+disk.d64: script test.prg 01.prg
 		${SPIN} -vv -o $@ -a dirart.txt -d 0 -t "-QUICK!DRAW!64!-" -e 1000 $<
-		#c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
+		c1541 -attach $@ -write 01.prg "01"
 
 clean:
 		rm *.sym *.prg *.d64
