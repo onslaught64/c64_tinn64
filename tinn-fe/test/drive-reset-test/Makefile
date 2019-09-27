@@ -12,8 +12,12 @@ test.prg: test.asm
 01.prg: 01.asm
 		kick $<
 
-disk.d64: script test.prg 01.prg
+control.prg: control.asm
+		kick $<
+
+disk.d64: script test.prg 01.prg control.prg
 		${SPIN} -vv -o $@ -a dirart.txt -d 0 -t "-QUICK!DRAW!64!-" -e 1000 $<
+		c1541 -attach $@ -write control.prg "test2"
 		c1541 -attach $@ -write 01.prg "01"
 
 clean:

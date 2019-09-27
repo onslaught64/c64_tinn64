@@ -1,28 +1,16 @@
+BasicUpstart2(start)
+//------------------------------------------
 .pc =$1000 "Program"
-start:
-    sei
-    lda #$37
-    sta $01
-    cli
 
+start: 
     jsr $e544 //clear screen
-
     ldx #< txt_1
     ldy #> txt_1
-    jsr print 
-    jsr $c90 //load a demo part
-    ldx #< txt_2
-    ldy #> txt_2
     jsr print
-    jsr $c90 //load loader
+
     ldx #< txt_3
     ldy #> txt_3
     jsr print
-
-    sei
-    lda #$37
-    sta $01
-    cli
 
     jsr $cc00 //init loader
     ldx #< txt_4
@@ -69,13 +57,10 @@ finish:
     rts
 
 txt_1:
-    .text "running test..."
-    .byte $00
-txt_2:
-    .text "first part loaded"
+    .text "control version..."
     .byte $00
 txt_3:
-    .text "loader part loaded, calling init..."
+    .text "loader part loaded, calling loader init..."
     .byte $00
 txt_4:
     .text "loader initialised, loading..."
@@ -83,3 +68,6 @@ txt_4:
 txt_5:
     .text "loader complete!"
     .byte $00
+
+.pc = $cc00
+.import c64 "../../rsrc/loaderfixed.prg"
