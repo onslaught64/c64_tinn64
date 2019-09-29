@@ -1,22 +1,4 @@
 
-
-//Make accumulator negative value
-.pseudocommand neg {
-	clc
-	eor #%11111111
-	adc #$00
-}
-
-//absolute value of the accumulator
-.pseudocommand abs {
-	cmp #$80
-	bmi !skip+
-	clc
-	eor #%11111111
-	adc #$00
-!skip:
-}
-
 .pseudocommand sadc value {
 	clc
 	adc value
@@ -27,82 +9,7 @@
 	sbc value
 }
 
-/*
-.pseudocommand gotoLTZ address {
-	bit REG_NEGMASK
-	beq address //if negative, skip
-}
 
-.pseudocommand gotoGTZ address {
-	bit REG_NEGMASK
-	bne address //if positive, skip
-}
-
-.pseudocommand gotoLTEZ address {
-	bit REG_NEGMASK
-	beq address //if negative, skip
-	cmp #$00
-	beq address
-}
-
-.pseudocommand gotoGTEZ address {
-	bit REG_NEGMASK
-	bne address //if positive, skip
-	cmp #$00
-	beq address
-}
-*/
-
-/*
-// x is number, y is remainder
-.pseudocommand div number divisor {
-	ldx #$00
-	lda #$00
-!pass:
-	inx 
-	clc
-	adc divisor
-	cmp number
-	bcc !pass-
-	sec
-	sbc number
-	tay
-}
-*/
-
-/*
-.pseudocommand smul2 arg {	
-	lda arg
-	clc
-	asl
-	bcs !forceNegative+
-!forcePositive:
-	and #%01111111
-	jmp !skip+
-!forceNegative:
-	ora #%10000000
-!skip:
-}
-
-.pseudocommand sdiv2 arg {	
-	lda arg
-	bit REG_NEGMASK
-	beq !forceNegative+
-!forcePositive:
-	clc
-	lsr
-	jmp !skip+
-!forceNegative:
-	clc
-	eor #%11111111
-	adc #$01
-	lsr
-	clc
-	eor #%11111111
-	adc #$01
-!skip:
-}
-*/
 
 .pseudocommand mov src:tar {
 	lda src
@@ -203,8 +110,15 @@ cont:
 	sta $fffe  //the address of our interrupt code
 	lda #>irq
 	sta $ffff
-
+	lda #<nmi
+	sta $fffa
+	lda #>nmi
+	sta $fffb
 	cli        //enable maskable interrupts again
+	jmp finish
+nmi:
+	rti
+finish:
 }
 
 .macro startInterrupt() {

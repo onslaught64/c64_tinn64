@@ -1,6 +1,6 @@
-.import source "../lib/lib.s"
-.import source "../lib/easingLib.s"
-.import source "../lib/const.s"
+.import source "lib.asm"
+.import source "easingLib.asm"
+.import source "const.asm"
 
 
 /*
@@ -15,8 +15,8 @@ Default-segment:
   $2d02-$2f6c Datasets
 */
 
-.var music = LoadSid("../rsrc/Island_Lore.sid")
-_outputMusicInfo()
+// .var music = LoadSid("../rsrc/Island_Lore.sid")
+// _outputMusicInfo()
 
 //Values
 
@@ -33,7 +33,7 @@ _outputMusicInfo()
 .pc = $0801 "Basic Upstart"
 :BasicUpstart(start) // 10 sys$0810
 .pc =$1a00 "Program"
-.import source "../lib/gui.input.keyboard_scan.asm"
+.import source "gui.input.keyboard_scan.asm"
 .pc = * "Code"
 start:
 	:mov #$00: $d020
@@ -56,7 +56,7 @@ irq:
 	//:doubleIRQ(rasterLine + 1)
     
     inc $d020
-    jsr music.play
+//    jsr music.play
     dec $d020
     
     //jsr funcKeys
@@ -87,8 +87,8 @@ initialise all data for the program
 funcInitData:
     ldx #$00
     ldy #$00
-    lda #music.startSong
-    jsr music.init
+    // lda #music.startSong
+    // jsr music.init
 
     lda #$01
     sta REG_SPRITE_ENABLE
@@ -527,8 +527,8 @@ CURSOR_COLOR_LUT:
 
 
 //MUSIC INJECTION
-.pc=music.location "Music"
-.fill music.size, music.getData(i)
+// .pc=music.location "Music"
+// .fill music.size, music.getData(i)
 
 //SPRITE CURSOR
 .pc=$0c00 "Sprite Cursor"
@@ -598,31 +598,31 @@ HELP_COLORS:
 MACROS
 *********************************************/
 
-.macro _outputMusicInfo(){
-    //----------------------------------------------------------
-// Print the music info while assembling
-.print ""
-.print "SID Data"
-.print "--------"
-.print "location=$"+toHexString(music.location)
-.print "init=$"+toHexString(music.init)
-.print "play=$"+toHexString(music.play)
-.print "songs="+music.songs
-.print "startSong="+music.startSong
-.print "size=$"+toHexString(music.size)
-.print "name="+music.name
-.print "author="+music.author
-.print "copyright="+music.copyright
-.print ""
-.print "Additional tech data"
-.print "--------------------"
-.print "header="+music.header
-.print "header version="+music.version
-.print "flags="+toBinaryString(music.flags)
-.print "speed="+toBinaryString(music.speed)
-.print "startpage="+music.startpage
-.print "pagelength="+music.pagelength
-}
+// .macro _outputMusicInfo(){
+//     //----------------------------------------------------------
+// // Print the music info while assembling
+// .print ""
+// .print "SID Data"
+// .print "--------"
+// .print "location=$"+toHexString(music.location)
+// .print "init=$"+toHexString(music.init)
+// .print "play=$"+toHexString(music.play)
+// .print "songs="+music.songs
+// .print "startSong="+music.startSong
+// .print "size=$"+toHexString(music.size)
+// .print "name="+music.name
+// .print "author="+music.author
+// .print "copyright="+music.copyright
+// .print ""
+// .print "Additional tech data"
+// .print "--------------------"
+// .print "header="+music.header
+// .print "header version="+music.version
+// .print "flags="+toBinaryString(music.flags)
+// .print "speed="+toBinaryString(music.speed)
+// .print "startpage="+music.startpage
+// .print "pagelength="+music.pagelength
+// }
 
 
 

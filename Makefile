@@ -11,10 +11,13 @@ SPIN=tinn-fe/spindle/spin
 
 all: disk.d64
 
+tinn-fe/src/intro.prg: tinn-fe/src/intro.asm
+		kick $<
+
 tinn-fe/src/fe.prg: tinn-fe/src/fe.asm
 		kick $<
 
-disk.d64: tinn-fe/script tinn-fe/src/fe.prg 
+disk.d64: tinn-fe/script tinn-fe/src/fe.prg tinn-fe/src/intro.prg
 		${SPIN} -vv -o $@ -a tinn-fe/dirart.txt -d 0 -t "-QUICK!DRAW!64!-" -e 1000 $<
 		#c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
 

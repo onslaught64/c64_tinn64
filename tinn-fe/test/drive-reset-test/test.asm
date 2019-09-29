@@ -19,6 +19,8 @@ start:
     ldy #> txt_3
     jsr print
 
+    jsr $c90 //one more time to try a reset?
+
     sei
     lda #$37
     sta $01
