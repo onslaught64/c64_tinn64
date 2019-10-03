@@ -188,6 +188,14 @@ var_char_lines_to_crunch:
 irq1:
 	:startInterrupt()
 	:doubleIRQ(raster_line_1)
+    lda initial_yscroll
+    ora #$50
+    sta $d011
+    lda #$18 //;use the invalid textmode to "cover up" the linecrunch bug area
+    sta $d016
+
+    lda #$04
+    sta $d020
 
     lda $d012
     cmp $d012 //;last cycle of CMP reads data from $d012
@@ -220,7 +228,7 @@ irq1:
     bpl !crunchloop-
     and #%10111111 //;disable invalid gfx mode
     sta $d011
-    lda #8
+    lda #$18
     sta $d016
 
 
@@ -252,13 +260,8 @@ irq1:
             //;therefore we must flip the yscroll to make it match
     sta initial_yscroll
     clc
-    adc #$30-3 //;before linecrunching takes 3 rasterlines
+    adc #$30-5 //;before linecrunching takes 3 rasterlines
     sta $d012
-    lda initial_yscroll
-    ora #$50
-    sta $d011
-    lda #$18 //;use the invalid textmode to "cover up" the linecrunch bug area
-    sta $d016
 
     :mov #<irq1: $fffe
     :mov #>irq1: $ffff
