@@ -234,6 +234,61 @@ waitForRaster:
     lda feTab,x
     sta zp_vsp_fe
 
+//delay to the end of first corrupt row -1
+    clc
+    lda $d012
+    adc #$06
+
+!:
+    cmp $d012
+    bne !-
+
+//delay into the line
+    ldx #$08
+!:
+    dex
+    bne !-
+
+// turn off illegal display mode
+    lda $d011
+    and #%10111111
+    sta $d011 
+
+// wait badline
+    lda #$01
+    sta $d020
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    lda #$00
+    sta $d020
+
+
+    ldy fldsize: #00
+!main:
+    lda fldTab,y
+    tax
+    beq !end+ //Skip if we want 0 lines FLD
+!loop:
+    lda $d012 //Wait for beginning of next line
+!:
+    cmp $d012
+    beq !-
+    clc // Do one line of FLD
+    lda $d011
+    adc #$01
+    and #$07
+    ora #$38 //multicolor
+    sta $d011
+
+    dex //Decrease counter
+    bne !loop-
+!end:
+//delay to the end of next char
     clc
     lda $d012
     adc #$08
@@ -241,17 +296,24 @@ waitForRaster:
     cmp $d012
     bne !-
 
-    lda $d011
-    and #%10111111
-    sta $d011
+    lda #$e8
+    cmp $d012
+    bcc !end+
+    iny
+    jmp !main-
+ !end:
+    inc fldsize
+
+    // lda $d011
+    // ora #%00111000 //$1b - border is open (with bitmap mode set)
+    // sta $d011
+
+
 
     lda #$ff
     sta REG_SPRITE_ENABLE
 
-    jsr func_play_music
-    // lda $d011
-    // ora #%00111000 //$1b - border is open (with bitmap mode set)
-    // sta $d011
+    //jsr func_play_music
 
 
 
@@ -261,57 +323,55 @@ waitForRaster:
     // lda #$18
     // sta $d016
 
+    :mov #$ff: $d019
     :mov #<irq1: $fffe
     :mov #>irq1: $ffff
 	:mov #raster_line_1:$d012
-	:mov #$ff: $d019
 	:endInterrupt()
 
 
-
 waitnops:
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		rts
-
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    rts
 
 
 
@@ -321,4 +381,6 @@ feTab:
 	.fill 256, mod((159 + sin(i/256*3.141592654*2.0)*159),8) | %00010000
 ffTab:
 	.fill 256, mod((159 + sin(i/256*3.141592654*2.0)*159)/8,40)
+fldTab:
 
+	.fill 256, 4 + (sin(i/256*3.141592654*4) * 4)
