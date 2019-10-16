@@ -285,6 +285,9 @@ waitForRaster:
     ora #$38 //multicolor
     sta $d011
 
+lda colTab,x
+sta $d020
+
     dex //Decrease counter
     bne !loop-
 !end:
@@ -312,6 +315,9 @@ waitForRaster:
 
     lda #$ff
     sta REG_SPRITE_ENABLE
+
+    lda #$00
+    sta $7fff
 
     //jsr func_play_music
 
@@ -382,5 +388,10 @@ feTab:
 ffTab:
 	.fill 256, mod((159 + sin(i/256*3.141592654*2.0)*159)/8,40)
 fldTab:
+	.fill 256, 8 + (sin(i/256*3.141592654*2) * 8)
 
-	.fill 256, 4 + (sin(i/256*3.141592654*4) * 4)
+colTab:
+    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
+    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
+    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
+    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
