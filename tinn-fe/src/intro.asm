@@ -41,11 +41,29 @@ start:
     jsr func_init
 	:setupInterrupt(irq1, raster_line_1) // last six chars (with a few raster lines to stabalize raster)
 
-    jsr func_spindle
-    jsr func_music_enable
-    jsr func_spindle
-    jsr func_draw_bitmap
+    // //jsr func_spindle
+    // ldx #'0'
+    // ldy #'2'
+    // lda #$10
+    // sta $2f
+    // lda #$00
+    // sta $2e
+    // jsr $cf00 //perform the load to $7000
+
+
+    // jsr func_music_enable
+    
+    //load bitmap
+    ldx #'0'
+    ldy #'3'
+    lda #$80
+    sta $ff
+    lda #$00
+    sta $fe
+    jsr $cf00
+
     jsr func_draw_bm_colors
+    jsr func_draw_bitmap
 
     //interrupts and memory are setup, now load music.
     // jsr $0c90
@@ -59,8 +77,11 @@ loop:
 
 func_init:
     //set the bank to #2 with SPINDLE resident
-    lda #$3d
-    sta $dd02 
+    lda $dd00
+    and #%11111100
+    ora #%00000010
+    sta $dd00 
+    
     //set screen mem to $0000 and bitmap to $2000 (+ bank)
     lda #%00001000 
     sta $d018
@@ -267,6 +288,15 @@ waitForRaster:
     lda #$00
     sta $d020
 
+    //fix the start line
+    clc
+    lda $d012
+    adc #$05    
+
+!:
+    cmp $d012
+    bne !-
+
 
     ldy fldsize: #00
 !main:
@@ -278,6 +308,7 @@ waitForRaster:
 !:
     cmp $d012
     beq !-
+
     clc // Do one line of FLD
     lda $d011
     adc #$01
@@ -285,13 +316,13 @@ waitForRaster:
     ora #$38 //multicolor
     sta $d011
 
-lda colTab,x
-sta $d020
 
     dex //Decrease counter
     bne !loop-
 !end:
 //delay to the end of next char
+
+
     clc
     lda $d012
     adc #$08
@@ -299,7 +330,7 @@ sta $d020
     cmp $d012
     bne !-
 
-    lda #$e8
+    lda #$e9
     cmp $d012
     bcc !end+
     iny
@@ -316,12 +347,7 @@ sta $d020
     lda #$ff
     sta REG_SPRITE_ENABLE
 
-    lda #$00
-    sta $7fff
-
     //jsr func_play_music
-
-
 
 
     // and #%10111111 //;disable invalid gfx mode
@@ -388,10 +414,5 @@ feTab:
 ffTab:
 	.fill 256, mod((159 + sin(i/256*3.141592654*2.0)*159)/8,40)
 fldTab:
-	.fill 256, 8 + (sin(i/256*3.141592654*2) * 8)
+	.fill 256, 4 + (sin(i/256*3.141592654*3) * 4)
 
-colTab:
-    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
-    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
-    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
-    .byte $00, $06, $0e, $03, $01, $03, $0e, $06
