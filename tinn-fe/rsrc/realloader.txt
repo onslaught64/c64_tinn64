@@ -1,17 +1,18 @@
-This is a loader ripped from the game Street Gang (as far as I can remember) which I ripped and relocated manually. 
+This is a loader ripped from the game Street Gang (as far as I can remember) which I ripped and reused all over the place. 
+I have modified different versions of this loader all over the place so I cannot guarantee this is the original...  
 
-1. it needs to be relocated to $cc00 (I don't know why its loading to $5000)
+1. init (load the irq loader to disk RAM) jsr $cc00
 
-2. init (load the irq loader to disk RAM) jsr $cc00
-
-3. load by calling 
+2. load by jsr to $cf00 as follows:
 
 ldy #$ petscii filename char 1
 ldx #$ petscii filename char 2
 lda #$ hi byte of load address
-sta $2f
+sta $ff
 lda #$ lo byte of load address
-sta $2e
+sta $fe
 jsr $cf00 
 
 This is a blocking call, however it allows IRQ to continue running.
+Note that filenames are limited to 2 chars
+

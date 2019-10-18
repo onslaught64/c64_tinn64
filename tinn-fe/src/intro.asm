@@ -65,6 +65,18 @@ start:
     jsr func_draw_bm_colors
     jsr func_draw_bitmap
 
+    //load bitmap
+    ldx #'0'
+    ldy #'4'
+    lda #$80
+    sta $ff
+    lda #$00
+    sta $fe
+    jsr $cf00
+
+    jsr func_draw_bm_colors
+    jsr func_draw_bitmap
+
     //interrupts and memory are setup, now load music.
     // jsr $0c90
     // _injectMusicReset()

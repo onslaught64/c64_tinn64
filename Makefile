@@ -20,13 +20,14 @@ tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm
 		kick $<
 
 disk.d64: tinn-fe/src/fe.prg tinn-fe/src/intro.prg tinn-fe/src/demo.prg
-
-		#${SPIN} -vv -o $@ -a tinn-fe/dirart.txt -d 0 -t "-QUICK!DRAW!64!-" -e 1000 $<
 		c1541 -format "defame,2a" d64 $@
 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
 		c1541 -attach $@ -write tinn-fe/src/intro.prg "01"
 		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
 		c1541 -attach $@ -write tinn-fe/rsrc/logo.prg "03"
+		c1541 -attach $@ -write tinn-fe/rsrc/brain.prg "04"
+
+
 
 
 		#c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
