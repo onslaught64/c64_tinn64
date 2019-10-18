@@ -2,7 +2,6 @@
 .import source "const.asm"
 
 .label raster_line_1 = $28
-.label func_spindle = $0c90
 
 .label zp_vsp_fd = $c0
 .label zp_vsp_fe = $c1
@@ -62,8 +61,8 @@ start:
     sta $fe
     jsr $cf00
 
-    jsr func_draw_bm_colors
     jsr func_draw_bitmap
+    jsr func_draw_bm_colors
 
     //load bitmap
     ldx #'0'
@@ -74,8 +73,8 @@ start:
     sta $fe
     jsr $cf00
 
-    jsr func_draw_bm_colors
     jsr func_draw_bitmap
+    jsr func_draw_bm_colors
 
     //interrupts and memory are setup, now load music.
     // jsr $0c90
@@ -93,7 +92,7 @@ func_init:
     and #%11111100
     ora #%00000010
     sta $dd00 
-    
+
     //set screen mem to $0000 and bitmap to $2000 (+ bank)
     lda #%00001000 
     sta $d018
@@ -136,6 +135,15 @@ var_music_enable:
 
 func_draw_bitmap:
     ldx #$00
+    //reset code
+    lda #$00
+    sta bm_src
+    sta bm_des
+    lda #$80
+    sta bm_src + 1
+    lda #$60
+    sta bm_des + 1
+    //now do it
 !:
     lda bm_src: $8000,x
     sta bm_des: $6000,x
@@ -151,6 +159,23 @@ func_draw_bitmap:
 func_draw_bm_colors:
     ldx #$00
     ldy #$00
+    //reset code
+    lda #$40
+    sta cm_src
+    lda #$9f
+    sta cm_src + 1
+    lda #$00
+    sta cm_des
+    sta xm_des
+    lda #$40
+    sta cm_des + 1
+    lda #$d8
+    sta xm_des + 1
+    lda #$38
+    sta xm_src
+    lda #$a3
+    sta xm_src + 1
+    //now do it
 !loop:
     lda cm_src: $9f40,x
     sta cm_des: $4000,x
@@ -334,6 +359,10 @@ waitForRaster:
 !end:
 //delay to the end of next char
 
+    clc
+    lda #$e7
+    cmp $d012
+    bcc !end+
 
     clc
     lda $d012
@@ -342,17 +371,40 @@ waitForRaster:
     cmp $d012
     bne !-
 
-    lda #$e9
-    cmp $d012
-    bcc !end+
     iny
     jmp !main-
  !end:
     inc fldsize
 
-    // lda $d011
-    // ora #%00111000 //$1b - border is open (with bitmap mode set)
-    // sta $d011
+lda #$f6
+!:
+cmp $d012
+bne !-
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+
+    lda $d011
+    ora #%01000000
+    sta $d011 
 
 
 
@@ -426,5 +478,6 @@ feTab:
 ffTab:
 	.fill 256, mod((159 + sin(i/256*3.141592654*2.0)*159)/8,40)
 fldTab:
-	.fill 256, 4 + (sin(i/256*3.141592654*3) * 4)
+	.fill 128, sinus(i, 4, 4, 128)
+    .fill 128, 00
 

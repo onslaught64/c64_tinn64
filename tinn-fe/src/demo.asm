@@ -1,18 +1,18 @@
+.import source "lib.asm"
+.import source "const.asm"
+.import source "easingLib.asm"
+
+.label raster_line_1 = $00
+
 BasicUpstart2(start)
 * = $0810
 start:
-    sei
-    jsr blanker
-    lda #$20
-    ldx #$00
-!:
-    sta $0400,x
-    sta $0500,x
-    sta $0600,x
-    sta $0700,x
-    inx
-    bne !-
-    cli
+    lda #$01
+    sta lo
+    sta hi
+    sta lob
+    sta hib
+
     //relocate the loader
     ldx #$00
 !loop:
@@ -29,10 +29,29 @@ start:
 
     jsr $cc00 //init loader
 
-    sei
-    lda #$7f
-    sta $dc0d
-    cli
+	:setupInterrupt(irq1, raster_line_1) // last six chars (with a few raster lines to stabalize raster)
+
+!:
+    lda stop
+    beq !-
+
+    lda #$00
+    sta $d020
+    sta $d021
+
+    lda #$20
+    ldx #$00
+!:
+    sta $0400,x
+    sta $0500,x
+    sta $0600,x
+    sta $0700,x
+    inx
+    bne !-
+
+    lda #$01
+    sta hib
+    sta lob
 
     ldx #'0'
     ldy #'1'
@@ -44,87 +63,93 @@ start:
 
     jmp $1000
 
-wait:
+
+bg:
+    .byte $00
+fg: 
+    .byte $00
+
+irq1:
+	:startInterrupt()
+	:doubleIRQ(raster_line_1)
+
+    lda $d020 
+    sta bg
+    lda $d021
+    sta fg
+    ldx #$07
 !:
-    lda $d011
-    bmi !-
+    dex
+    bne !-
+    nop
+
+    lda #$00
+    sta $d020
+    sta $d021
+    lda #%01111011
+    sta $d011
+
+//insert delay
+!:
+    bit $ea
+    nop
+    dec lo
+    bne !-
+    dec hi
+    bne !-
+
     lda $d012
 !:
     cmp $d012
     beq !-
-    lda #$00
+    ldx #$08
 !:
-    cmp $d012
+    dex
     bne !-
-    rts
-
-
-
-blanker:
-    lda $d020
-    sta border
-    lda $d021
-    sta screen
-
-    ldx #$01
-    ldy #$00
-!loop:
-    lda #$00
-!:
-    cmp $d012
-    bne !-
-!:
-    lda $d011
-    bmi !loop-
-
-
-    lda #$00
-    sta $d020
-    sta $d021
-    lda #$6b
+    nop
+    nop
+    lda #%00011011
     sta $d011
-
-    cpy #$00
-    bne !hiset+
-
-!:
-    cpx $d012
-    bne !-
-    
-    lda border: #$00
+    lda bg
     sta $d020
-    lda screen: #$00
+    lda fg
     sta $d021
-    lda #$1b
-    sta $d011
+
+    lda stop
+    bne !+
     clc
-    txa
-    adc #$04
-    tax
-    bcc !+
-    iny
+    lda lob
+    adc #$0c
+    sta lob
+    lda hib
+    adc #$00
+    sta hib
+    cmp #$06
+    bne !+
+    inc stop
+    //set flag to stop
 !:
-    jmp !loop-
-!hiset:
-!:
-    lda $d011
-    bpl!-
-!:
-    cpx $d012
-    bne !-
-    lda #$1b
-    sta $d011
-    inx
-    cpx #$10
-    beq !+
-    jmp !loop-
-!:
-    rts
+    lda lob
+    sta lo
+    lda hib
+    sta hi
 
-
-
-
-
+    :mov #$ff: $d019
+    :mov #<irq1: $fffe
+    :mov #>irq1: $ffff
+	:mov #raster_line_1:$d012
+	:endInterrupt()
 
 * = $1000
 .import c64 "tinn-fe/rsrc/realloader.prg"
+
+lo:
+.byte $00
+hi:
+.byte $00
+lob:
+.byte $00
+hib:
+.byte $00
+stop:
+.byte $00
