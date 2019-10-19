@@ -40,16 +40,6 @@ start:
     jsr func_init
 	:setupInterrupt(irq1, raster_line_1) // last six chars (with a few raster lines to stabalize raster)
 
-    // //jsr func_spindle
-    // ldx #'0'
-    // ldy #'2'
-    // lda #$10
-    // sta $2f
-    // lda #$00
-    // sta $2e
-    // jsr $cf00 //perform the load to $7000
-
-
     // jsr func_music_enable
     
     //load bitmap
@@ -61,8 +51,9 @@ start:
     sta $fe
     jsr $cf00
 
-    jsr func_draw_bitmap
-    jsr func_draw_bm_colors
+    jsr func_dissolve_in
+
+    jsr func_dissolve_out
 
     //load bitmap
     ldx #'0'
@@ -73,8 +64,8 @@ start:
     sta $fe
     jsr $cf00
 
-    jsr func_draw_bitmap
-    jsr func_draw_bm_colors
+    jsr func_dissolve_in
+    jsr func_dissolve_out
 
     //interrupts and memory are setup, now load music.
     // jsr $0c90
@@ -133,113 +124,33 @@ func_play_music:
 var_music_enable:
 .byte  $00
 
-func_draw_bitmap:
-    ldx #$00
-    //reset code
-    lda #$00
-    sta bm_src
-    sta bm_des
-    lda #$80
-    sta bm_src + 1
-    lda #$60
-    sta bm_des + 1
-    //now do it
-!:
-    lda bm_src: $8000,x
-    sta bm_des: $6000,x
-    inx
-    bne !-
-    inc bm_des + 1
-    inc bm_src + 1
-    lda bm_src + 1
-    cmp #$a0
-    bne !-
-    rts
+// func_draw_bitmap:
 
-func_draw_bm_colors:
-    ldx #$00
-    ldy #$00
-    //reset code
-    lda #$40
-    sta cm_src
-    lda #$9f
-    sta cm_src + 1
-    lda #$00
-    sta cm_des
-    sta xm_des
-    lda #$40
-    sta cm_des + 1
-    lda #$d8
-    sta xm_des + 1
-    lda #$38
-    sta xm_src
-    lda #$a3
-    sta xm_src + 1
-    //now do it
-!loop:
-    lda cm_src: $9f40,x
-    sta cm_des: $4000,x
-    inx
-    cpx #$28
-    bne !loop-
 
-    ldx #$00
-!:
-    lda xm_src: $a338,x
-    sta xm_des: $d800,x
-    inx
-    cpx #$28
-    bne !-
 
-    clc
-    lda cm_src
-    adc #$28
-    sta cm_src
-    lda cm_src + 1
-    adc #$00
-    sta cm_src + 1
+//     ldx #$00
+//     //reset code
+//     lda #$00
+//     sta bm_src
+//     sta bm_des
+//     lda #$80
+//     sta bm_src + 1
+//     lda #$60
+//     sta bm_des + 1
+//     //now do it
+// !:
+//     lda bm_src: $8000,x
+//     sta bm_des: $6000,x
+//     inx
+//     bne !-
+//     inc bm_des + 1
+//     inc bm_src + 1
+//     lda bm_src + 1
+//     cmp #$a0
+//     bne !-
+//     rts
 
-    clc
-    lda cm_des
-    adc #$28
-    sta cm_des
-    lda cm_des + 1
-    adc #$00
-    sta cm_des + 1
 
-    clc
-    lda xm_src
-    adc #$28
-    sta xm_src
-    lda xm_src + 1
-    adc #$00
-    sta xm_src + 1
-
-    clc
-    lda xm_des
-    adc #$28
-    sta xm_des
-    lda xm_des + 1
-    adc #$00
-    sta xm_des + 1
-
-    jsr func_frame_wait
-
-    //loop
-    ldx #$00
-    iny 
-    cpy #25
-    bne !loop-
-    rts
-
-func_frame_wait:
-    //pause
-    ldx $d012
-    dex
-!wait:
-    cpx $d012
-    bne !wait-
-    rts
 
 irq1:
 	:startInterrupt()
@@ -481,3 +392,102 @@ fldTab:
 	.fill 128, sinus(i, 4, 4, 128)
     .fill 128, 00
 
+
+
+func_dissolve_out:
+    lda #$00
+    sta ptra
+    sta counter
+!:
+    clc
+    lda ptra: #$00
+    adc offsa:#$05
+    sta ptra
+    jsr func_plot_black
+    inc counter
+    bne !-
+    inc counter
+    bne !-
+    jsr func_wipe_ocs_colors
+    rts
+
+func_dissolve_in:
+    lda #$00
+    sta ptrb
+    sta counter
+    jsr func_draw_ocs_colors
+!:
+    clc
+    lda ptrb: #$00
+    adc offsb:#$03
+    sta ptrb
+    jsr func_plot_original
+    inc counter
+    bne !-
+    rts
+
+counter:
+.byte $00
+
+func_plot_original:
+    tay
+    and #%00000011
+    asl
+    tax
+    tya
+    lsr
+    lsr
+    tay
+    .for(var i=0;i<$80;i++){
+        lda $8000 + (i*$40),y
+        and OR_BITMASKS,x
+        ora $6000 + (i*$40),y        
+        sta $6000 + (i*$40),y
+    }
+    rts
+
+func_plot_black:
+    tay
+    and #%00000011
+    asl
+    tax
+    tya
+    lsr
+    lsr
+    tay
+    .for(var i=0;i<$80;i++){
+        lda $8000 + (i*$40),y
+        and AND_BITMASKS,x
+        sta $6000 + (i*$40),y
+    }
+    rts    
+
+OR_BITMASKS:
+    .byte %11000000, %11000000, %00110000, %00110000, %00001100, %00001100, %00000011, %00000011
+AND_BITMASKS:
+    .byte %00111111, %00111111, %11001111, %11001111, %11110011, %11110011, %11111100, %11111100
+
+func_draw_ocs_colors:
+    ldx #$00
+!:
+    .for(var i=0;i<4;i++){
+        lda $9f40 + (i * $100),x
+        sta $4000 + (i * $100),x
+        lda $a338 + (i * $100),x
+        sta $d800 + (i * $100),x
+    }
+    inx
+    bne !-
+    rts
+
+func_wipe_ocs_colors:
+    ldx #$00
+!:
+    .for(var i=0;i<4;i++){
+        lda #$00
+        sta $4000 + (i * $100),x
+        sta $d800 + (i * $100),x
+    }
+    inx
+    bne !-
+    rts
