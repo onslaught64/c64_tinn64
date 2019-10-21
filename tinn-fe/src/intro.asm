@@ -39,43 +39,8 @@ start:
     :fill_8K($00, $6000)
     jsr func_init
 	:setupInterrupt(irq1, raster_line_1) // last six chars (with a few raster lines to stabalize raster)
-
+    jmp func_main
     // jsr func_music_enable
-    
-    //load bitmap
-    ldx #'0'
-    ldy #'3'
-    lda #$80
-    sta $ff
-    lda #$00
-    sta $fe
-    jsr $cf00
-
-    jsr func_dissolve_in
-
-    jsr func_dissolve_out
-
-    //load bitmap
-    ldx #'0'
-    ldy #'4'
-    lda #$80
-    sta $ff
-    lda #$00
-    sta $fe
-    jsr $cf00
-
-    jsr func_dissolve_in
-    jsr func_dissolve_out
-
-    //interrupts and memory are setup, now load music.
-    // jsr $0c90
-    // _injectMusicReset()
-    // lda #$01
-    // sta CallMusicFlag //allow interrupts to play music now
-
-
-loop:
-    jmp loop
 
 func_init:
     //set the bank to #2 with SPINDLE resident
@@ -396,38 +361,35 @@ fldTab:
 
 func_dissolve_out:
     lda #$00
-    sta ptra
     sta counter
 !:
-    clc
-    lda ptra: #$00
-    adc offsa:#$05
-    sta ptra
     jsr func_plot_black
-    inc counter
-    bne !-
-    inc counter
+    clc
+    lda counter
+    adc dissolve
+    sta counter
     bne !-
     jsr func_wipe_ocs_colors
     rts
 
 func_dissolve_in:
-    lda #$00
-    sta ptrb
-    sta counter
     jsr func_draw_ocs_colors
+    lda #$00
+    sta counter
 !:
-    clc
-    lda ptrb: #$00
-    adc offsb:#$03
-    sta ptrb
     jsr func_plot_original
-    inc counter
+    clc
+    lda counter
+    adc dissolve
+    sta counter
     bne !-
     rts
 
 counter:
 .byte $00
+
+dissolve:
+.byte $01
 
 func_plot_original:
     tay
@@ -456,7 +418,7 @@ func_plot_black:
     lsr
     tay
     .for(var i=0;i<$80;i++){
-        lda $8000 + (i*$40),y
+        lda $6000 + (i*$40),y
         and AND_BITMASKS,x
         sta $6000 + (i*$40),y
     }
@@ -491,3 +453,62 @@ func_wipe_ocs_colors:
     inx
     bne !-
     rts
+
+func_main:
+tempLoop:
+
+    //load bitmap
+    ldx #'0'
+    ldy #'3'
+    lda #$80
+    sta $ff
+    lda #$00
+    sta $fe
+    jsr $cf00
+
+dis:
+    jsr func_dissolve_in
+ldx #$00
+ldy #$00
+!:
+dex
+bne !-
+dey
+bne !-
+inc dissolve
+inc dissolve
+lda dissolve
+sta $c000
+    jsr func_dissolve_out
+    jmp dis
+
+
+    //load bitmap
+    ldx #'0'
+    ldy #'4'
+    lda #$80
+    sta $ff
+    lda #$00
+    sta $fe
+    jsr $cf00
+
+    jsr func_dissolve_out
+
+    jsr func_dissolve_in
+
+
+inc dissolve
+inc dissolve
+lda dissolve
+sta $c000
+
+jmp tempLoop
+    //interrupts and memory are setup, now load music.
+    // jsr $0c90
+    // _injectMusicReset()
+    // lda #$01
+    // sta CallMusicFlag //allow interrupts to play music now
+
+
+loop:
+    jmp loop
