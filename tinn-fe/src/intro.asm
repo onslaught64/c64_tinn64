@@ -136,7 +136,7 @@ waitForRaster:
     nop
     nop
 
-    lda #$00		// Prep for VSP
+    lda #%01001000		// Prep for VSP
     sta $d011
 
     // delay a bit for correct raster pos
@@ -277,12 +277,23 @@ nop
 nop
 nop
 nop
-
+nop
     lda $d011
-    ora #%01000000
+    ora #%01001000
+    sta $d011 
+
+lda #$f9
+!:
+cmp $d012
+bne !-
+    lda $d011
+    and #%11110111
     sta $d011 
 
 
+
+lda #$01
+sta $d021
 
     lda #$ff
     sta REG_SPRITE_ENABLE
@@ -389,7 +400,7 @@ counter:
 .byte $00
 
 dissolve:
-.byte $01
+.byte $39
 
 func_plot_original:
     tay
@@ -475,10 +486,6 @@ dex
 bne !-
 dey
 bne !-
-inc dissolve
-inc dissolve
-lda dissolve
-sta $c000
     jsr func_dissolve_out
     jmp dis
 
