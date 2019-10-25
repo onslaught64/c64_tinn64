@@ -291,10 +291,6 @@ bne !-
     sta $d011 
 
 
-
-lda #$01
-sta $d021
-
     lda #$ff
     sta REG_SPRITE_ENABLE
 
@@ -476,19 +472,8 @@ tempLoop:
     lda #$00
     sta $fe
     jsr $cf00
-
-dis:
-    jsr func_dissolve_in
-ldx #$00
-ldy #$00
-!:
-dex
-bne !-
-dey
-bne !-
     jsr func_dissolve_out
-    jmp dis
-
+    jsr func_dissolve_in
 
     //load bitmap
     ldx #'0'
@@ -498,16 +483,15 @@ bne !-
     lda #$00
     sta $fe
     jsr $cf00
-
     jsr func_dissolve_out
-
     jsr func_dissolve_in
 
 
-inc dissolve
-inc dissolve
+clc
 lda dissolve
-sta $c000
+adc #$0f
+sta dissolve
+
 
 jmp tempLoop
     //interrupts and memory are setup, now load music.

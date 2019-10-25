@@ -21,11 +21,13 @@ tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm
 
 disk.d64: tinn-fe/src/fe.prg tinn-fe/src/intro.prg tinn-fe/src/demo.prg
 		c1541 -format "defame,2a" d64 $@
-		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
-		c1541 -attach $@ -write tinn-fe/src/intro.prg "01"
-		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
-		c1541 -attach $@ -write tinn-fe/rsrc/logo.prg "03"
-		c1541 -attach $@ -write tinn-fe/rsrc/brain.prg "04"
+		c1541 -attach $@ -write tinn-fe/src/fe.prg "test-front-end" 
+# 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
+# 		c1541 -attach $@ -write tinn-fe/src/intro.prg "01"
+# 		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
+# 		c1541 -attach $@ -write tinn-fe/rsrc/logo.prg "03"
+# 		c1541 -attach $@ -write tinn-fe/rsrc/brain.prg "04"
+
 
 
 

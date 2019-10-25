@@ -60,11 +60,11 @@ irq:
     dec $d020
     
     //jsr funcKeys
-    ldy CURSOR_Y
-    ldx CURSOR_X
-    jsr funcPositionCursor
-    jsr funcColorCursor
-    jsr funcDrawHelp
+    // ldy CURSOR_Y
+    // ldx CURSOR_X
+    // jsr funcPositionCursor
+    // jsr funcColorCursor
+    // jsr funcDrawHelp
 
 
 	:mov #<irq: $fffe
@@ -90,21 +90,55 @@ funcInitData:
     // lda #music.startSong
     // jsr music.init
 
+    //init the screen
+    //jsr funcDrawScreen
+    rts
+
+
+funcInitCursor:
     lda #$01
     sta REG_SPRITE_ENABLE
     ldx #$00
     ldy #$00
     jsr funcPositionCursor
-
     lda #$00
     sta REG_SPRITE_MULTICOLOUR
-
     lda #$30 //
     sta REG_SPRITE_DATA_PTR_0
-
-    //init the screen
-    jsr funcDrawScreen
     rts
+
+/*
+Fill the background text and colors
+TODO: copy a background petscii background  
+*/
+funcInitBackground:
+    lda #$30
+    ldx #$00
+!:
+    sta $0400,x
+    sta $0500,x
+    sta $0600,x
+    sta $0700,x
+    inx
+    bne !-
+
+    lda #$0c
+    ldx #$00
+!:
+    sta $d800,x
+    sta $d900,x
+    sta $da00,x
+    sta $db00,x
+    inx
+    bne !-
+    rts
+
+
+
+funcDrawWindow:
+   
+
+
 
 
 /*
@@ -415,7 +449,9 @@ TOGGLE_STATE:
 //00 everything
 //ff nothing
 
+
 //import neural net!!!
+.align $100
 .pc = * "Neural Net"
 .import source "./nn.asm"
 
