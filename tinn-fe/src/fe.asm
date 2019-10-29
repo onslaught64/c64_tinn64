@@ -2,7 +2,6 @@
 .import source "easingLib.asm"
 .import source "const.asm"
 
-
 /*
 Default-segment:
   $0801-$080d Basic Upstart
@@ -32,7 +31,34 @@ Default-segment:
 
 .pc = $0801 "Basic Upstart"
 :BasicUpstart(start) // 10 sys$0810
-.pc =$1a00 "Program"
+.pc =$1a00 "KeyboardHandler"
+funcKeys:
+	jsr ReadKeyboard
+	bcs !NoValidInput+
+	jmp !skip+
+!NoValidInput:
+	lda #$00
+	sta LAST_EVENT
+	sta LAST_EVENT + 1
+	sta LAST_EVENT + 2
+	rts
+!skip:
+	cpx LAST_EVENT
+	bne !skip+
+	cpy LAST_EVENT + 1
+	bne !skip+
+	cmp LAST_EVENT + 2
+	bne !skip+
+	rts
+!skip:
+	stx LAST_EVENT
+	sty LAST_EVENT + 1
+	sta LAST_EVENT + 2
+    jmp $1a80
+.pc = $1a80 "keysTarget"
+    jmp keysTarget: $ffff
+    rts
+
 .import source "gui.input.keyboard_scan.asm"
 .pc = * "Code"
 start:
@@ -41,6 +67,13 @@ start:
 	:fill_1K($0f, $d800)
     :fill_1K($20, $0400) //clear screen with blank chars
     jsr funcInitData
+
+jsr funcInitBackground
+jsr funcHelp
+!:
+jmp !-
+
+nop
 
 	:setupInterrupt(irq, rasterLine) // last six chars (with a few raster lines to stabalize raster)
 !loop:
@@ -73,6 +106,13 @@ irq:
 	:mov #$ff: $d019
 	:endInterrupt()
 
+//import the window library
+.import source "help.asm"
+
+
+
+
+
 
 /********************************************
 FUNCTIONS
@@ -89,9 +129,10 @@ funcInitData:
     ldy #$00
     // lda #music.startSong
     // jsr music.init
-
     //init the screen
     //jsr funcDrawScreen
+    lda #$17
+    sta $d018
     rts
 
 
@@ -112,7 +153,7 @@ Fill the background text and colors
 TODO: copy a background petscii background  
 */
 funcInitBackground:
-    lda #$30
+    lda #$df
     ldx #$00
 !:
     sta $0400,x
@@ -135,95 +176,8 @@ funcInitBackground:
 
 
 
-funcDrawWindow:
-   
 
 
-
-
-/*
---------------------------------------------------------------------------------------------
-display help text
---------------------------------------------------------------------------------------------
-x = x position
-y = y position
-a = destroyed
-*/
-.label HELP_Y = $18
-help_counter_a: .byte $00
-help_state: .byte $01
-funcDrawHelp:
-//color cycle
-    ldy HELP_COLORS + SCREEN_WIDTH 
-    ldx #SCREEN_WIDTH
-!loop:
-    lda HELP_COLORS -1 ,x
-    sta HELP_COLORS,x
-    sta BASE_COLOUR_RAM + (HELP_Y * SCREEN_WIDTH) - 1,x
-    dex
-    cpx #$00
-    bne !loop-
-    sty HELP_COLORS
-//scroll and pause decoder
-    lda help_state
-    cmp #$00
-    beq help_pause
-    jmp help_scroll
-help_pause: //handle pause state
-    inc help_counter_a
-    lda help_counter_a
-    cmp #$00
-    beq !skip+
-    rts
-!skip: //toggle to scroll state from pause state
-    lda #$00
-    sta help_counter_a
-    lda #$01
-    sta help_state
-    rts
-help_scroll: //handle scroll state
-    ldx #$00
-!loop:
-    jsr funcHelpGetChar
-    cmp #$00
-    bne !skip+
-    lda #<INSTRUCTIONS
-    sta help_start
-    lda #>INSTRUCTIONS
-    sta help_start + 1
-    sta help_counter_a //reset pause counter
-    sta help_state //toggle pause mode
-    lda #$01
-    sta help_cursor
-    rts
-!skip:
-    sta BASE_CHAR_RAM + (HELP_Y * SCREEN_WIDTH),x
-    inx
-    cpx help_cursor: #$01
-    bne !loop-
-    inc help_cursor
-    lda help_cursor
-    cmp #SCREEN_WIDTH + 1
-    bne !skip+
-    lda #$01
-    sta help_cursor
-    clc
-    lda help_start
-    adc #$28
-    sta help_start
-    bcc !inner_skip+
-    inc help_start + 1
-!inner_skip:
-    lda #$00
-    sta help_counter_a //reset pause counter
-    sta help_state //toggle pause mode
-!skip:
-    rts
-
-
-funcHelpGetChar:
-    lda help_start: INSTRUCTIONS,x
-    rts
 
 /*
 --------------------------------------------------------------------------------------------
@@ -351,29 +305,10 @@ funcDrawScreen:
     }
     rts
 
-funcKeys:
-	jsr ReadKeyboard
-	bcs !NoValidInput+
-	jmp !skip+
-!NoValidInput:
-	lda #$00
-	sta LAST_EVENT
-	sta LAST_EVENT + 1
-	sta LAST_EVENT + 2
-	rts
-!skip:
-	cpx LAST_EVENT
-	bne !skip+
-	cpy LAST_EVENT + 1
-	bne !skip+
-	cmp LAST_EVENT + 2
-	bne !skip+
-	rts
-!skip:
-	stx LAST_EVENT
-	sty LAST_EVENT + 1
-	sta LAST_EVENT + 2
 
+
+
+funcHandleDrawKeys:
 	cpx #%10000000
 	beq !updown+
 	cpx #%00000100
