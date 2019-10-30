@@ -39,6 +39,25 @@ win_text:
     .word $0000
 
 
+funcDrawButtonColor:
+    ldy colorCounter
+    lda buttonColors,y
+    sta win_color
+    iny
+    cpy #$08
+    bne !+
+    ldy #$00
+!:
+    sty colorCounter
+    jsr funcDrawButton
+    rts
+
+colorCounter:
+    .byte $00
+
+buttonColors:
+    .byte $06, $0e, $03, $01, $03, $0e, $06, $00
+
 funcDrawButton:
     lda win_text
     sta funcReadChar + 1

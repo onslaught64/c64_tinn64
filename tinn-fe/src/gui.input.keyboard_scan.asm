@@ -149,9 +149,42 @@ ZERO PAGE
     .pc = * "Keyboard Scan Routine"
 
 
+/*
+Added to handle sticky keys issue with the library
+and provide a handler hook 
+*/
 
     // Operational Variables
     .var MaxKeyRollover = 3
+
+KeyboardScanner:
+    jsr ReadKeyboard
+    bcs !NoValidInput+
+    jmp !skip+
+!NoValidInput:
+    lda #$00
+    sta KEYBOARD_LAST_EVENT
+    sta KEYBOARD_LAST_EVENT + 1
+    sta KEYBOARD_LAST_EVENT + 2
+    rts
+!skip:
+    cpx KEYBOARD_LAST_EVENT
+    bne !skip+
+    cpy KEYBOARD_LAST_EVENT + 1
+    bne !skip+
+    cmp KEYBOARD_LAST_EVENT + 2
+    bne !skip+
+    rts
+!skip:
+    stx KEYBOARD_LAST_EVENT
+    sty KEYBOARD_LAST_EVENT + 1
+    sta KEYBOARD_LAST_EVENT + 2
+    jmp KEYBOARD_HANDLER_HOOK: $ffff
+    rts
+
+KEYBOARD_LAST_EVENT:
+.byte $00, $00, $00
+
 
 ReadKeyboard:
     jmp Main
