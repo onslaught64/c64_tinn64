@@ -10,9 +10,6 @@ CONDAENV=demo
 
 all: disk.d64
 
-tinn-fe/src/intro.prg: tinn-fe/src/intro.asm
-		kick $<
-
 tinn-fe/src/fe.prg: tinn-fe/src/fe.asm
 		kick $<
 
