@@ -16,7 +16,7 @@ tinn-fe/src/fe.prg: tinn-fe/src/fe.asm
 tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm
 		kick $<
 
-disk.d64: tinn-fe/src/fe.prg tinn-fe/src/intro.prg tinn-fe/src/demo.prg
+disk.d64: tinn-fe/src/fe.prg tinn-fe/src/demo.prg
 		c1541 -format "defame,2a" d64 $@
 		c1541 -attach $@ -write tinn-fe/src/fe.prg "test-front-end" 
 # 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
