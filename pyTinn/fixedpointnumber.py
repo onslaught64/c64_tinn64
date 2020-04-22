@@ -54,23 +54,15 @@ class FixedPointNumber(object):
 
     def __str__(self):
         output = ".byte "
-        output = output + " %" + self.render_byte_as_bin(2) # 8
-        output = output + ", %" + self.render_byte_as_bin(1) # 16 
-        output = output + ", %" + self.render_byte_as_bin(0) # 24
+        output = output + " %" + self.render_byte_as_bin(0) # 8 (Drop this)
+        output = output + ", %" + self.render_byte_as_bin(1) # 16 (Keep this HI)
+        output = output + ", %" + self.render_byte_as_bin(2) # 24 (keep this LO)
         output = output + "//"
         output = output + " FIXED: "
         output = output + str(hex(self.fp_value))
-        output = output + "\t\t FLOAT "
+        output = output + "\t\t FLOAT RATIO:"
         output = output + str(self.fp_value / 65536)
-        return output
-
-    def render_selected_byte(self, index):
-        output = ".byte "
-        output = output + " %" + self.render_byte_as_bin(index) # 8
-        output = output + "//"
-        output = output + " FIXED: "
-        output = output + str(hex(self.fp_value))
-        output = output + "\t\t FLOAT "
-        output = output + str(self.fp_value / 65536)
+        output = output + "\t\t\t FLOAT RAW:"
+        output = output + str(self.fp_value)
         return output
 

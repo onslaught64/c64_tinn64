@@ -65,10 +65,10 @@ class Data:
 		return len(self.in_)
 
 
-def do_output(o, value:float):
+def do_output(o, value:float, index:int):
 	fp = FixedPointNumber(value)
-	o.write(str(fp) + "\n")
-
+	o.write(str(fp.render_byte_as_bin(index)) + "\n")
+	# o.write(str(fp) + "\n")
 
 nips = 256
 nhid = 32
@@ -84,7 +84,7 @@ print("model init")
 t = tinn.Tinn(nips, nhid, nops)
 
 
-
+# training passes
 for _ in range(2):
 	print("Shuffle...")
 	data.shuffle()
@@ -101,6 +101,7 @@ for _ in range(2):
 	print("error " + str(error/len(data)) + " :: learning rate " + str(rate))
 	rate *= anneal
 
+#
 for i in range(10):
 	in_ = data.in_[i]
 	tg = data.tg[i]

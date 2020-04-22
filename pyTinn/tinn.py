@@ -3,15 +3,15 @@
 from typing import List
 import math
 import random
-
+import numpy as np
 
 # we make exponent a lookup so we can emulate it precisely in C64
-exp_lut = list()
+lut = [256]
+vals = np.linspace(-11, 11, 256)
 for i in range(256):
-	exp_lut.append( 1 / (1 + math.exp(-((8 * (i/256))-4))) )
+    tmp = 1 / (1 + math.exp(vals[i]*-1))
+    lut[i] = tmp  # FixedPointNumber(tmp)
 
-# for i in exp_lut:
-# 	print(str(i))
 
 class Tinn:
 	def __init__(self, nips: int, nhid: int, nops: int):
@@ -53,14 +53,17 @@ def toterr(tg: List[float], o: List[float]) -> float:
 	"""Total error."""
 	return sum([err(tg[i], o[i]) for i in range(len(o))])
 
+
 def act(a: float) -> float:
 	"""Activation function."""
-	if a > 4:
+	if a > 11:
 		return 1.0
-	if a < -4: 
+	if a < -11:
 		return 0.0
-	tmp = int(((a + 4) / 8) * 256)
-	return exp_lut[tmp]
+	tmp = a + 11 # make range 0 -> 22 instead of -11 to +11
+	tmp = (tmp / 22) * 256
+	tmp = int(tmp)
+	return lut[tmp]
 	# return 1 / (1 + math.exp(-a))
 
 
