@@ -16,7 +16,22 @@ funcHelp:
     jsr funcHelpDrawPage2
     jsr funcHelpWaitNext
     jsr funcHelpDrawPage3
+    jsr funcHelpWaitNext
+    jsr funcHelpDrawPage4
     jsr funcHelpWaitClose
+    rts
+
+funcButtonWait:
+    lda #$0d
+    sta win_color
+    jsr funcDrawButton
+!:
+    jsr KeyboardScanner
+    lda help_progress
+    beq !-
+    //reset the button wait flag
+    lda #$00
+    sta help_progress
     rts
 
 funcHelpWaitNext:
@@ -28,21 +43,7 @@ funcHelpWaitNext:
     sta win_x
     lda #17
     sta win_y
-    jsr funcDrawButtonColor
-
-    ldx #$00
-    ldy #$d0
-!:
-    inx
-    bne !-
-    iny 
-    bne !-
-
-    jsr KeyboardScanner
-    lda help_progress
-    beq funcHelpWaitNext
-    lda #$00
-    sta help_progress
+    jsr funcButtonWait
     rts
 
 funcHelpWaitClose:
@@ -54,21 +55,7 @@ funcHelpWaitClose:
     sta win_x
     lda #17
     sta win_y
-    jsr funcDrawButtonColor
-
-    ldx #$00
-    ldy #$d0
-!:
-    inx
-    bne !-
-    iny 
-    bne !-
-
-    jsr KeyboardScanner
-    lda help_progress
-    beq funcHelpWaitClose
-    lda #$00
-    sta help_progress
+    jsr funcButtonWait
     rts
 
 help_progress:
@@ -108,6 +95,14 @@ funcHelpDrawPage3:
     lda #<txt_helpDialog_3
     sta win_text
     lda #>txt_helpDialog_3
+    sta win_text + 1
+    jsr funcHelpRenderDialog
+    rts
+
+funcHelpDrawPage4:
+    lda #<txt_helpDialog_4
+    sta win_text
+    lda #>txt_helpDialog_4
     sta win_text + 1
     jsr funcHelpRenderDialog
     rts
@@ -161,12 +156,29 @@ txt_helpDialog_2:
 .text "classify it!"
 .byte $00
 .byte $00
-.text "Simply select the kernel you"
 .byte $00
-.text "want to use and go draw!"
-.byte $00, $00, $00, $00, $00
+.text "More on the next page..."
+.byte $00, $00, $00, $00, $00, $00, $00, $00
 
 txt_helpDialog_3:
+//     -----------------------------
+.text "How Does This Demo Work?"
+.byte $00
+.byte $63,$63,$63,$63,$63,$63,$63,$63,$63,$63
+.byte $63,$63,$63,$63,$63,$63,$63,$63,$63,$63
+.byte $63,$63,$63,$63,$63
+.byte $00
+.text "Select the kernel you want to"
+.byte $00
+.text "use and draw a little picture."
+.byte $00
+.byte $00
+.byte $00
+.byte $00
+.text "More on the next page..."
+.byte $00, $00, $00, $00, $00, $00, $00, $00
+
+txt_helpDialog_4:
 //     -----------------------------
 .text "Then What Happens Next?"
 .byte $00

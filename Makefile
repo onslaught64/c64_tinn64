@@ -24,11 +24,6 @@ disk.d64: tinn-fe/src/fe.prg tinn-fe/src/demo.prg
 # 		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
 # 		c1541 -attach $@ -write tinn-fe/rsrc/logo.prg "03"
 # 		c1541 -attach $@ -write tinn-fe/rsrc/brain.prg "04"
-
-
-
-
-
 		#c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
 
 clean:
