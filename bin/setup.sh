@@ -41,7 +41,7 @@ else
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
-       conda create -n "$1" python="3.5"
+       conda create -n "$1" python="3.7"
     else
        echo "Try again with the correct virtual environment"
        conda env list
