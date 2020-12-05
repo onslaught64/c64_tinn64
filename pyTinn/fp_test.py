@@ -26,6 +26,18 @@ fp(7.9)
 fp(0.27585)
 fp(7.9 - 0.27585)
 
+print("C64 TEST 7 VALUES")
+fp(7.9)
+fp(0.27585)
+fp(7.9 * 0.27585)
+
+print("C64 TEST 9 VALUES")
+fp(-7.9)
+fp(0.27585)
+fp(-7.9 * 0.27585)
+
+
+
 
 # print("Testing exponent segments (256 byte range)")
 # for i in range(256):

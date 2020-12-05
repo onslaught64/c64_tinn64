@@ -85,8 +85,76 @@ start:
     jsr sub
     jsr printbits
 
+    print("TEST 6: multiply 2 x 3")
+    print("$020000*$030000=$")
+    lda #$00
+    sta inal
+    lda #$00
+    sta inam
+    lda #$02
+    sta inah
+    lda #$00
+    sta inbl
+    lda #$00
+    sta inbm
+    lda #$03
+    sta inbh
+    jsr mul
+    jsr printbits
 
+    print("TEST 7: 7.9 x 0.27585=2.179215")
+    print("$7E6666*$0469E2=$22DE11=$")
+    lda #$66
+    sta inal
+    lda #$66
+    sta inam
+    lda #$7e
+    sta inah
+    lda #$e2
+    sta inbl
+    lda #$69
+    sta inbm
+    lda #$04
+    sta inbh
+    jsr mul
+    jsr printbits
+
+    print("TEST 8: 7 x 1=7")
+    print("$700000*$100000=$700000=$")
+    lda #$00
+    sta inal
+    lda #$00
+    sta inam
+    lda #$70
+    sta inah
+    lda #$00
+    sta inbl
+    lda #$00
+    sta inbm
+    lda #$10
+    sta inbh
+    jsr mul
+    jsr printbits
+
+    print("TEST 9: -7.9 x 0.27585=-2.179215")
+    print("$81999A*$0469E2=$DD21EF=$")
+    lda #$9a
+    sta inal
+    lda #$99
+    sta inam
+    lda #$81
+    sta inah
+    lda #$e2
+    sta inbl
+    lda #$69
+    sta inbm
+    lda #$04
+    sta inbh
+    jsr mul
+    jsr printbits
     rts
+
+
 
 nega:
     lda inal
@@ -116,6 +184,20 @@ negb:
     sta inbh
     rts
 
+nego:
+    lda outl
+    eor #$ff
+    clc
+    adc #$01
+    sta outl
+    lda outm
+    eor #$ff
+    sta outm
+    lda outh
+    eor #$ff
+    sta outh
+    rts
+
 add:
     clc
     lda inal
@@ -143,7 +225,6 @@ sub:
     sta outh
     rts
 
-
 printbits:
     lda outh //h
     jsr hexout
@@ -151,8 +232,6 @@ printbits:
     jsr hexout
     lda outl //l
     jmp hexout
-
-    
 
 hexout:
     clc
@@ -193,9 +272,78 @@ hexdig:
 !done:
 }
 
+
+mul:
+    ldy #$00
+	lda inah //high byte (sign)
+	bpl !skip+ //  if factor1 is negative
+	jsr nega // then factor1 := -factor1
+	iny	// and switch sign
+!skip:
+	lda inbh //high byte (sign)
+	bpl !skip+ // if factor2 is negative
+	jsr negb // then factor2 := -factor2
+	iny // and switch sign
+!skip:
+    lda #$00     // clear p2 and p3 of product
+    sta outl
+    sta outm
+    sta outh
+    sta out4
+    sta out5
+    sta out6
+    ldx #24     // multiplier bit count = 16
+nxtbt:
+    lsr inah
+    ror inam
+    ror inal    //shift two-byte multiplier right
+    bcc align   // multiplier = 1?
+    clc
+    lda out4      // yes. fetch p2
+    adc inbl      // and add m0 to it
+    sta out4      // store new p2
+    lda out5      // yes. fetch p2
+    adc inbm      /// and add m0 to it
+    sta out5      // store new p2
+    lda out6      // yes. fetch p2
+    adc inbh      // and add m0 to it
+align:   
+    ror        // rotate four-byte product right
+    sta out6      // store new p3
+    ror out5
+    ror out4
+    ror outh
+    ror outm
+    ror outl
+    dex          // decrement bit count
+    bne nxtbt    // loop until 16 bits are done
+    .for(var i=0; i<4; i++){
+        lsr out6
+        ror out5
+        ror out4
+        ror outh
+    }
+    lda outh
+    sta outl
+    lda out4 
+    sta outm
+    lda out5
+    sta outh
+//clean up sign
+	tya
+	and #$01 // if .x is odd
+	beq !skip+
+	jsr nego // then product := -product
+!skip:
+    rts
+
+
 inal: .byte $00
 inam: .byte $00
 inah: .byte $00
+ina4: .byte $00 //mul overflow
+ina5: .byte $00
+ina6: .byte $00
 
 inbl: .byte $00
 inbm: .byte $00
@@ -204,89 +352,8 @@ inbh: .byte $00
 outl: .byte $00
 outm: .byte $00
 outh: .byte $00
+out4: .byte $00
+out5: .byte $00
+out6: .byte $00
 
 
-/*
-Based on http://codebase64.org/doku.php?id=base:24bit_multiplication_24bit_product
-	; Signed 24-bit multiply routine
-	; Clobbers a, x, factor1, factor2
-    modified to handle fixed point multiply (2 extra bytes of precision)
-    note that the 24 bit result is actually r3 -> r5 NOT r1! 
-    Bascially reading from r3 rescales the result
-*/
-// mMul:
-// 	ldx #$00 // .x will hold the sign of product
-//     stx r1 // init result
-//     stx r2
-//     stx r3
-//     stx r4
-//     stx r5
-//     stx a4
-//     stx a5
-// 	lda a3 //high byte (sign)
-// 	bpl !skip+ //  if factor1 is negative
-// 	negative24(a1) // then factor1 := -factor1
-// 	inx	// and switch sign
-// !skip:
-// 	lda b3 //high byte (sign)
-// 	bpl !skip+ // if factor2 is negative
-// 	negative24(b1) // then factor2 := -factor2
-// 	inx // and switch sign
-// !skip:
-//     // do unsigned multiplication
-// !loop:
-// 	lda b1			// ; while factor2 != 0
-// 	bne !nz+
-// 	lda b2
-// 	bne !nz+
-// 	lda b3
-// 	bne !nz+
-// 	jmp !done+
-// !nz:
-// 	lda b1			// ; if factor2 is odd
-// 	and #$01
-// 	beq !skip+
-	
-// 	lda a1			// ; product += factor1
-// 	clc
-// 	adc r1
-// 	sta r1
-	
-// 	lda a2
-// 	adc r2
-// 	sta r2
-	
-//     lda a3
-//     adc r3
-//     sta r3
-
-//     lda a4
-//     adc r4
-//     sta r4
-
-//     lda a5
-//     adc r5
-//     sta r5
-
-// //; end if
-
-// !skip:
-// 	asl a1			//; << factor1 
-// 	rol a2
-// 	rol a3
-//     rol a4
-//     rol a5
-// 	lsr b3			//; >> factor2
-// 	ror b2
-// 	ror b1
-
-// 	jmp !loop-		//; end while	
-
-// !done:
-//     //clean up sign
-// 	txa
-// 	and #$01 // if .x is odd
-// 	beq !skip+
-// 	negative24(r3) // then product := -product
-// !skip:
-//     rts
