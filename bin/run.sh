@@ -19,8 +19,7 @@ ENVS=$(conda env list | awk '{print $PROJECT}' )
 if [[ $ENVS = *"$PROJECT"* ]]; then
     conda activate ${PROJECT}
 else
-    conda create -n "${PROJECT}" python="3.7"
-    conda activate ${PROJECT}
+    exit 1
 fi;
-pip install --upgrade -r "${WORKINGDIR}/requirements.txt"
-mkdir -p output
+export PYTHONPATH=$PYTHONPATH:data:pyTinn/src
+python $@
