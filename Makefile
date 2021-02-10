@@ -2,13 +2,19 @@
 #MAKEFILE FOR Q!D!64!
 #Copyright 2019 Zig/Defame
 #
-CONDAENV=demo
-#
-#MAKEFILE FOR Q!D!64!
-#Copyright 2019 Zig/Defame
-#
+SHELL := /bin/bash
+
+help: ## This help
+	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
 all: disk.d64
+
+install: ## Install dependencies (miniconda) and create conda environment
+		bin/miniconda.sh
+		bin/setup.sh
+
+test: ## Run Python unit tests
+		bin/run.sh nose2 test
 
 tinn-fe/src/fe.prg: tinn-fe/src/fe.asm
 		kick $<
@@ -52,4 +58,3 @@ mnist:
 
 quckdraw:
 		bin/quickdraw.sh ${CONDAENV}
-
