@@ -11,5 +11,5 @@ Run:
 
 NOTE: this is originally from https://github.com/nvalis/pyTinn
 
-Adapted by J.Cincotta for rendering fixed point output and using a sampled activation function
+Adapted by J.Cincotta for rendering fixed point output and using a sampled activation function to train an neural network that can be forward propagated on a 6502 efficiently.
 

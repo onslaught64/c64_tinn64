@@ -1,8 +1,18 @@
-msb_range = 16
+"""
+FIXED POINT NUMBER
+------------------
+24 bit signed fixed point number implementation
+that outputs lo-med-hi byte for Kick Assembler
+
+Zig/Defame
+"""
+
+msb_range = 32
 bit_depth = 0x1000000
 
+
 class FixedPointNumber(object):
-    def __init__(self, value: str):
+    def __init__(self, value: float):
         self._fp: float = value
         self._int: int = 0
         self._bits = []
@@ -27,13 +37,13 @@ class FixedPointNumber(object):
         return self._int
 
     def render_byte(self, index: int) -> str:
-        return hex(self._bits[index]).replace('0x','').zfill(2)
+        return "$" + hex(self._bits[index]).replace('0x','').zfill(2)
 
     def __str__(self):
         output = ".byte "
-        output = output + " $" + self.render_byte(0) # 8 (Lo)
-        output = output + ", $" + self.render_byte(1) # 16 (Med)
-        output = output + ", $" + self.render_byte(2) # 24 (Hi)
+        output = output + self.render_byte(0) # 8 (Lo)
+        output = output + "," + self.render_byte(1) # 16 (Med)
+        output = output + "," + self.render_byte(2) # 24 (Hi)
         output = output + "//"
         output = output + " FLOAT: "
         output = output + str(self.value).zfill(24)

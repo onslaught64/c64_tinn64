@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from fixedpointnumber import FixedPointNumber
+#todo: convert this to unit tests
+
+from defame.fixedpointnumber import FixedPointNumber
 import numpy as np
 import math
 
