@@ -19,10 +19,10 @@ test: ## Run Python unit tests
 tinn-fe/src/fe.prg: tinn-fe/src/fe.asm
 		kick $<
 
-tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm
+tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm ## compile c64 demo
 		kick $<
 
-disk.d64: tinn-fe/src/fe.prg tinn-fe/src/demo.prg
+disk.d64: tinn-fe/src/fe.prg tinn-fe/src/demo.prg ## create complete c64 disk demo
 		c1541 -format "defame,2a" d64 $@
 		c1541 -attach $@ -write tinn-fe/src/fe.prg "test-front-end" 
 # 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
@@ -58,3 +58,31 @@ mnist:
 
 quckdraw:
 		bin/quickdraw.sh ${CONDAENV}
+
+build_screens: ## make the screen datafiles using petscii packer
+		kick data/screens.asm
+		kick data/packer.asm
+		mv data/col01_packed.prg tinn-fe/rsrc/col01_packed.prg
+		mv data/col02_packed.prg tinn-fe/rsrc/col02_packed.prg
+		mv data/col03_packed.prg tinn-fe/rsrc/col03_packed.prg
+		mv data/col04_packed.prg tinn-fe/rsrc/col04_packed.prg
+		mv data/col05_packed.prg tinn-fe/rsrc/col05_packed.prg
+		mv data/col06_packed.prg tinn-fe/rsrc/col06_packed.prg
+		mv data/scr01_packed.prg tinn-fe/rsrc/scr01_packed.prg
+		mv data/scr02_packed.prg tinn-fe/rsrc/scr02_packed.prg
+		mv data/scr03_packed.prg tinn-fe/rsrc/scr03_packed.prg
+		mv data/scr04_packed.prg tinn-fe/rsrc/scr04_packed.prg
+		mv data/scr05_packed.prg tinn-fe/rsrc/scr05_packed.prg
+		mv data/scr06_packed.prg tinn-fe/rsrc/scr06_packed.prg
+		rm data/col01.prg
+		rm data/col02.prg
+		rm data/col03.prg
+		rm data/col04.prg
+		rm data/col05.prg
+		rm data/col06.prg
+		rm data/scr01.prg
+		rm data/scr02.prg
+		rm data/scr03.prg
+		rm data/scr04.prg
+		rm data/scr05.prg
+		rm data/scr06.prg

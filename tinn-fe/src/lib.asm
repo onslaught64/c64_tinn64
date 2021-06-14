@@ -362,3 +362,205 @@ loop:
 	.pc = charsetAdr "charset"
 	.fill charsetData.size(), charsetData.get(i)
 }
+
+.macro packer(filename) {
+	/*
+	Format:
+	byte 1: equal char packing byte
+	byte 2... data
+	packed data format:
+	byte 1: equal char packing byte 
+	byte 2: >freq
+	byte 3: <freq
+	byte 4: byte
+
+	end bytes:
+	$ff $ff
+
+	*/
+    .const FILE_TEMPLATE = "C64FILE"
+	.var freq = 0
+	.var this_char = 0
+	.var last_char = 0
+	.var screenData = List()
+	.var data = LoadBinary(filename, FILE_TEMPLATE)
+	.var hist = List(256)
+	.var tmp = 0
+
+	.for (var i=0;i<256; i++){
+		.eval hist.set(i, 0)
+	}
+
+	.for (var i=0;i<data.getSize(); i++){
+        .print data.get(i).number()
+		.eval tmp = hist.get(data.uget(i).number())
+        .eval tmp++
+		.eval hist.set(data.uget(i).number(), tmp)
+	}
+	// This logic basically says, equal_pack_char is zero unless we can find another char that is unused
+	.var equal_pack_char = 0
+	.for (var i=0; i<256;i++){
+		.if(hist.get(i).number() == 0){
+			.eval equal_pack_char = i
+    	}
+	}
+	// First byte is always the RLE sentinel
+	.eval screenData.add(equal_pack_char)
+	.for (var i=0; i<data.getSize(); i++){
+		.eval this_char = data.uget(i)
+		.if (freq > 0){
+			.if(this_char == last_char){
+				// another equal char
+				.eval freq++
+			} else {
+				.if ((freq > 4) || (last_char == equal_pack_char)){
+					//dump rle code and reset (force if you are output RLE code)
+					.eval screenData.add(equal_pack_char)
+					.eval screenData.add(>freq)
+					.eval screenData.add(<freq)
+					.eval screenData.add(last_char)
+				} else {
+					//insert chars manually if we don't reach the compression threshold
+					.for (var i=0;i<freq;i++){
+						.eval screenData.add(last_char)
+					}
+				}
+				.eval freq = 1
+				.eval last_char = this_char
+			}
+		}else{
+			.eval freq = 1
+			.eval last_char = this_char
+		}
+	}
+	.if ((freq > 4) || (last_char == equal_pack_char)){
+		//dump rle code and reset (force if you are output RLE code)
+		.eval screenData.add(equal_pack_char)
+		.eval screenData.add(>freq)
+		.eval screenData.add(<freq)
+		.eval screenData.add(last_char)
+	} else {
+		//insert chars manually if we don't reach the compression threshold
+		.for (var i=0;i<freq;i++){
+			.eval screenData.add(last_char)
+		}
+	}
+	.eval screenData.add(equal_pack_char)
+	.eval screenData.add($ff)
+	.eval screenData.add($ff)
+	.eval screenData.add($ff)
+    .print screenData.size() 
+    .fill screenData.size(), screenData.get(i)
+}
+
+.macro unpacker(){
+	/*
+	Perform equal-byte unpack
+		x: source data lo-byte
+		y: source data hi-byte
+		a: destination page (hi-byte)
+	*/
+	jmp upk
+	/*
+	Enable transparency logic during unpack
+		a: transparent byte
+	*/
+	jmp enable_transparency
+	/*
+	Disable transparency logic during unpack
+	*/
+	jmp disable_transparency
+upk:	
+	stx src + 1
+	sty src + 2
+	sta dst + 2
+	lda #$00
+	sta dst + 1
+	jsr read
+	sta sentinel + 1 // this is the sentinel char
+loop:
+	jsr read
+sentinel:
+	cmp #$00
+	beq unpack
+	jsr write
+	jmp loop
+unpack:
+	jsr read
+	tay // hi byte
+	cpy #$ff
+	beq finish
+	jsr read
+	tax // lo byte
+	jsr read //byte to write
+ip_loop:
+	jsr write
+	dex
+	cpx #$00
+	bne ip_loop
+	cpy #$00
+	beq loop
+	dey
+	jmp ip_loop
+finish:
+	rts
+enable_transparency:
+	sta w_trans_enable + 1
+	lda #$c9
+	sta w_trans_enable
+	lda #$f0
+	sta w_trans_enable + 2
+	lda #$03
+	sta w_trans_enable + 3
+	rts
+disable_transparency:
+	lda #$ea
+	sta w_trans_enable
+	sta w_trans_enable + 1
+	sta w_trans_enable + 2
+	sta w_trans_enable + 3
+	rts
+
+read:
+	stx r_recover + 1
+	sty r_recover + 3
+	ldy src + 2
+	ldx src + 1
+	inx
+	cpx #$00
+	bne src
+	iny
+src:
+	lda $ffff
+	stx src + 1
+	sty src + 2
+r_recover:
+	ldx #$00
+	ldy #$00
+	rts
+
+write:
+	stx w_recover + 1
+	sty w_recover + 3
+	ldy dst + 2
+	ldx dst + 1
+	inx
+	cpx #$00
+	bne w_trans_enable
+	iny
+w_trans_enable:
+	cmp #$66
+	beq w_trans
+dst:	
+	sta $ffff
+w_trans:
+	stx dst + 1
+	sty dst + 2
+w_recover:
+	ldx #$00
+	ldy #$00
+	rts
+
+
+
+}
