@@ -1,0 +1,541 @@
+                  * = $CC00
+CC00   4C 06 CC   JMP $CC06
+CC03   4C 00 CF   JMP $CF00
+CC06   20 52 CC   JSR $CC52
+CC09   A9 B7      LDA #$B7
+CC0B   A2 CC      LDX #$CC
+CC0D   85 9E      STA $9E
+CC0F   86 9F      STX $9F
+CC11   20 72 CC   JSR $CC72
+CC14   A0 00      LDY #$00
+CC16   B1 9E      LDA ($9E),Y
+CC18   20 68 CC   JSR $CC68
+CC1B   C8         INY
+CC1C   C0 10      CPY #$10
+CC1E   D0 F6      BNE $CC16
+CC20   A9 0D      LDA #$0D
+CC22   20 68 CC   JSR $CC68
+CC25   20 AE CC   JSR $CCAE
+CC28   20 52 CC   JSR $CC52
+CC2B   A5 9E      LDA $9E
+CC2D   18         CLC
+CC2E   69 10      ADC #$10
+CC30   85 9E      STA $9E
+CC32   90 02      BCC $CC36
+CC34   E6 9F      INC $9F
+CC36   C9 5E      CMP #$5E
+CC38   A5 9F      LDA $9F
+CC3A   E9 CE      SBC #$CE
+CC3C   90 D3      BCC $CC11
+CC3E   20 9A CC   JSR $CC9A
+CC41   20 AE CC   JSR $CCAE
+CC44   A9 C7      LDA #$C7
+CC46   8D 00 DD   STA $DD00
+CC49   A2 00      LDX #$00
+CC4B   88         DEY
+CC4C   D0 FD      BNE $CC4B
+CC4E   CA         DEX
+CC4F   D0 FA      BNE $CC4B
+CC51   60         RTS
+CC52   A2 08      LDX #$08
+CC54   A9 0F      LDA #$0F
+CC56   A8         TAY
+CC57   20 BA FF   JSR $FFBA
+CC5A   A9 00      LDA #$00
+CC5C   20 BD FF   JSR $FFBD
+CC5F   20 C0 FF   JSR $FFC0
+CC62   A2 0F      LDX #$0F
+CC64   20 C9 FF   JSR $FFC9
+CC67   60         RTS
+CC68   8C F8 CF   STY $CFF8
+CC6B   20 D2 FF   JSR $FFD2
+CC6E   AC F8 CF   LDY $CFF8
+CC71   60         RTS
+CC72   A9 4D      LDA #$4D
+CC74   20 68 CC   JSR $CC68
+CC77   A9 2D      LDA #$2D
+CC79   20 68 CC   JSR $CC68
+CC7C   A9 57      LDA #$57
+CC7E   20 68 CC   JSR $CC68
+CC81   A5 9E      LDA $9E
+CC83   38         SEC
+CC84   E9 B7      SBC #$B7
+CC86   08         PHP
+CC87   18         CLC
+CC88   20 68 CC   JSR $CC68
+CC8B   28         PLP
+CC8C   A5 9F      LDA $9F
+CC8E   E9 C7      SBC #$C7
+CC90   18         CLC
+CC91   20 68 CC   JSR $CC68
+CC94   A9 10      LDA #$10
+CC96   20 68 CC   JSR $CC68
+CC99   60         RTS
+CC9A   A0 00      LDY #$00
+CC9C   B9 A8 CC   LDA $CCA8,Y
+CC9F   20 68 CC   JSR $CC68
+CCA2   C8         INY
+CCA3   C0 06      CPY #$06
+CCA5   D0 F5      BNE $CC9C
+CCA7   60         RTS
+CCA8   4D 2D 45   EOR $452D
+CCAB   00         BRK
+CCAC   05 0D      ORA $0D
+CCAE   20 CC FF   JSR $FFCC
+CCB1   A9 0F      LDA #$0F
+CCB3   20 C3 FF   JSR $FFC3
+CCB6   60         RTS
+CCB7   20 7F 06   JSR $067F
+CCBA   20 C3 05   JSR $05C3
+CCBD   A5 0E      LDA $0E
+CCBF   8D A5 06   STA $06A5
+CCC2   A5 0F      LDA $0F
+CCC4   8D A6 06   STA $06A6
+CCC7   A0 01      LDY #$01
+CCC9   A2 12      LDX #$12
+CCCB   86 0E      STX $0E
+CCCD   84 0F      STY $0F
+CCCF   20 FB 05   JSR $05FB
+CCD2   A0 02      LDY #$02
+CCD4   B9 00 07   LDA $0700,Y
+CCD7   29 83      AND #$83
+CCD9   C9 82      CMP #$82
+CCDB   D0 13      BNE $CCF0
+CCDD   B9 03 07   LDA $0703,Y
+CCE0   CD A5 06   CMP $06A5
+CCE3   D0 0B      BNE $CCF0
+CCE5   B9 04 07   LDA $0704,Y
+CCE8   CD A6 06   CMP $06A6
+CCEB   D0 03      BNE $CCF0
+CCED   4C 61 05   JMP $0561
+CCF0   98         TYA
+CCF1   18         CLC
+CCF2   69 20      ADC #$20
+CCF4   A8         TAY
+CCF5   90 DD      BCC $CCD4
+CCF7   AC 01 07   LDY $0701
+CCFA   10 CD      BPL $CCC9
+CCFC   A9 00      LDA #$00
+CCFE   8D 00 18   STA $1800
+CD01   A2 FE      LDX #$FE
+CD03   20 2F 06   JSR $062F
+CD06   A2 FE      LDX #$FE
+CD08   20 2F 06   JSR $062F
+CD0B   A2 AC      LDX #$AC
+CD0D   20 2F 06   JSR $062F
+CD10   A2 F7      LDX #$F7
+CD12   20 2F 06   JSR $062F
+CD15   4C 03 05   JMP $0503
+CD18   B9 01 07   LDA $0701,Y
+CD1B   85 0E      STA $0E
+CD1D   B9 02 07   LDA $0702,Y
+CD20   85 0F      STA $0F
+CD22   20 FB 05   JSR $05FB
+CD25   A0 00      LDY #$00
+CD27   AD 00 07   LDA $0700
+CD2A   85 0E      STA $0E
+CD2C   D0 04      BNE $CD32
+CD2E   AC 01 07   LDY $0701
+CD31   C8         INY
+CD32   8C A5 06   STY $06A5
+CD35   AD 01 07   LDA $0701
+CD38   85 0F      STA $0F
+CD3A   A0 02      LDY #$02
+CD3C   A9 00      LDA #$00
+CD3E   8D 00 18   STA $1800
+CD41   BE 00 07   LDX $0700,Y
+CD44   E0 AC      CPX #$AC
+CD46   D0 05      BNE $CD4D
+CD48   20 2F 06   JSR $062F
+CD4B   A2 AC      LDX #$AC
+CD4D   20 2F 06   JSR $062F
+CD50   C8         INY
+CD51   CC A5 06   CPY $06A5
+CD54   D0 EB      BNE $CD41
+CD56   AD 00 07   LDA $0700
+CD59   F0 12      BEQ $CD6D
+CD5B   A2 AC      LDX #$AC
+CD5D   20 2F 06   JSR $062F
+CD60   A2 C3      LDX #$C3
+CD62   20 2F 06   JSR $062F
+CD65   A9 08      LDA #$08
+CD67   8D 00 18   STA $1800
+CD6A   4C 6B 05   JMP $056B
+CD6D   A2 AC      LDX #$AC
+CD6F   20 2F 06   JSR $062F
+CD72   A2 FF      LDX #$FF
+CD74   20 2F 06   JSR $062F
+CD77   4C 03 05   JMP $0503
+CD7A   A9 08      LDA #$08
+CD7C   8D 00 18   STA $1800
+CD7F   AD 00 1C   LDA $1C00
+CD82   29 F7      AND #$F7
+CD84   8D 00 1C   STA $1C00
+CD87   58         CLI
+CD88   A9 01      LDA #$01
+CD8A   2C 00 18   BIT $1800
+CD8D   F0 FB      BEQ $CD8A
+CD8F   78         SEI
+CD90   A9 00      LDA #$00
+CD92   8D 00 18   STA $1800
+CD95   20 5D 06   JSR $065D
+CD98   48         PHA
+CD99   20 5D 06   JSR $065D
+CD9C   85 0E      STA $0E
+CD9E   20 5D 06   JSR $065D
+CDA1   85 0F      STA $0F
+CDA3   A9 08      LDA #$08
+CDA5   8D 00 18   STA $1800
+CDA8   AD 00 1C   LDA $1C00
+CDAB   09 08      ORA #$08
+CDAD   8D 00 1C   STA $1C00
+CDB0   68         PLA
+CDB1   60         RTS
+CDB2   A0 05      LDY #$05
+CDB4   84 8B      STY $8B
+CDB6   58         CLI
+CDB7   A9 80      LDA #$80
+CDB9   85 04      STA $04
+CDBB   A5 04      LDA $04
+CDBD   30 FC      BMI $CDBB
+CDBF   C9 01      CMP #$01
+CDC1   F0 21      BEQ $CDE4
+CDC3   C6 8B      DEC $8B
+CDC5   A4 8B      LDY $8B
+CDC7   30 16      BMI $CDDF
+CDC9   C0 02      CPY #$02
+CDCB   D0 04      BNE $CDD1
+CDCD   A9 C0      LDA #$C0
+CDCF   85 04      STA $04
+CDD1   A5 16      LDA $16
+CDD3   85 12      STA $12
+CDD5   A5 17      LDA $17
+CDD7   85 13      STA $13
+CDD9   A5 04      LDA $04
+CDDB   30 FC      BMI $CDD9
+CDDD   10 D7      BPL $CDB6
+CDDF   68         PLA
+CDE0   68         PLA
+CDE1   4C 45 05   JMP $0545
+CDE4   78         SEI
+CDE5   60         RTS
+CDE6   86 14      STX $14
+CDE8   A9 04      LDA #$04
+CDEA   20 3C 06   JSR $063C
+CDED   20 3C 06   JSR $063C
+CDF0   20 3C 06   JSR $063C
+CDF3   46 14      LSR $14
+CDF5   A2 02      LDX #$02
+CDF7   90 02      BCC $CDFB
+CDF9   A2 00      LDX #$00
+CDFB   2C 00 18   BIT $1800
+CDFE   D0 FB      BNE $CDFB
+CE00   8E 00 18   STX $1800
+CE03   46 14      LSR $14
+CE05   A2 02      LDX #$02
+CE07   90 02      BCC $CE0B
+CE09   A2 00      LDX #$00
+CE0B   2C 00 18   BIT $1800
+CE0E   F0 FB      BEQ $CE0B
+CE10   8E 00 18   STX $1800
+CE13   60         RTS
+CE14   A0 04      LDY #$04
+CE16   A9 04      LDA #$04
+CE18   2C 00 18   BIT $1800
+CE1B   F0 FB      BEQ $CE18
+CE1D   AD 00 18   LDA $1800
+CE20   4A         LSR A
+CE21   66 14      ROR $14
+CE23   A9 04      LDA #$04
+CE25   2C 00 18   BIT $1800
+CE28   D0 FB      BNE $CE25
+CE2A   AD 00 18   LDA $1800
+CE2D   4A         LSR A
+CE2E   66 14      ROR $14
+CE30   88         DEY
+CE31   D0 E3      BNE $CE16
+CE33   A5 14      LDA $14
+CE35   60         RTS
+CE36   78         SEI
+CE37   D8         CLD
+CE38   A0 08      LDY #$08
+CE3A   A9 10      LDA #$10
+CE3C   8D 00 18   STA $1800
+CE3F   CA         DEX
+CE40   D0 FD      BNE $CE3F
+CE42   A9 00      LDA #$00
+CE44   8D 00 18   STA $1800
+CE47   CA         DEX
+CE48   D0 FD      BNE $CE47
+CE4A   88         DEY
+CE4B   D0 ED      BNE $CE3A
+CE4D   AD 00 18   LDA $1800
+CE50   29 05      AND #$05
+CE52   D0 F9      BNE $CE4D
+CE54   AD 00 18   LDA $1800
+CE57   29 05      AND #$05
+CE59   D0 F2      BNE $CE4D
+CE5B   60         RTS
+CE5C   00         BRK
+CE5D   00         BRK
+CE5E   00         BRK
+CE5F   00         BRK
+CE60   00         BRK
+CE61   00         BRK
+CE62   00         BRK
+CE63   00         BRK
+CE64   00         BRK
+CE65   00         BRK
+CE66   00         BRK
+CE67   00         BRK
+CE68   98         TYA
+CE69   00         BRK
+CE6A   00         BRK
+CE6B   00         BRK
+CE6C   00         BRK
+CE6D   00         BRK
+CE6E   00         BRK
+CE6F   00         BRK
+CE70   00         BRK
+CE71   00         BRK
+CE72   00         BRK
+CE73   00         BRK
+CE74   00         BRK
+CE75   00         BRK
+CE76   00         BRK
+CE77   00         BRK
+CE78   94 00      STY $00,X
+CE7A   00         BRK
+CE7B   00         BRK
+CE7C   00         BRK
+CE7D   00         BRK
+CE7E   00         BRK
+CE7F   00         BRK
+CE80   20 00 CC   JSR $CC00
+CE83   A2 46      LDX #$46
+CE85   A0 30      LDY #$30
+CE87   20 00 CF   JSR $CF00
+CE8A   C8         INY
+CE8B   C0 34      CPY #$34
+CE8D   D0 F8      BNE $CE87
+CE8F   A9 40      LDA #$40
+CE91   8D F9 FF   STA $FFF9
+CE94   A9 F9      LDA #$F9
+CE96   8D FA FF   STA $FFFA
+CE99   A9 FF      LDA #$FF
+CE9B   8D FB FF   STA $FFFB
+CE9E   4C 42 41   JMP $4142
+CEA1   00         BRK
+CEA2   00         BRK
+CEA3   00         BRK
+CEA4   00         BRK
+CEA5   00         BRK
+CEA6   00         BRK
+CEA7   00         BRK
+CEA8   00         BRK
+CEA9   00         BRK
+CEAA   00         BRK
+CEAB   00         BRK
+CEAC   00         BRK
+CEAD   00         BRK
+CEAE   00         BRK
+CEAF   00         BRK
+CEB0   00         BRK
+CEB1   00         BRK
+CEB2   00         BRK
+CEB3   00         BRK
+CEB4   00         BRK
+CEB5   00         BRK
+CEB6   00         BRK
+CEB7   00         BRK
+CEB8   00         BRK
+CEB9   00         BRK
+CEBA   00         BRK
+CEBB   00         BRK
+CEBC   00         BRK
+CEBD   00         BRK
+CEBE   00         BRK
+CEBF   00         BRK
+CEC0   00         BRK
+CEC1   00         BRK
+CEC2   00         BRK
+CEC3   00         BRK
+CEC4   00         BRK
+CEC5   00         BRK
+CEC6   00         BRK
+CEC7   00         BRK
+CEC8   00         BRK
+CEC9   00         BRK
+CECA   00         BRK
+CECB   00         BRK
+CECC   00         BRK
+CECD   00         BRK
+CECE   00         BRK
+CECF   00         BRK
+CED0   00         BRK
+CED1   00         BRK
+CED2   00         BRK
+CED3   00         BRK
+CED4   00         BRK
+CED5   00         BRK
+CED6   00         BRK
+CED7   00         BRK
+CED8   00         BRK
+CED9   00         BRK
+CEDA   00         BRK
+CEDB   00         BRK
+CEDC   00         BRK
+CEDD   00         BRK
+CEDE   00         BRK
+CEDF   00         BRK
+CEE0   00         BRK
+CEE1   00         BRK
+CEE2   00         BRK
+CEE3   00         BRK
+CEE4   00         BRK
+CEE5   00         BRK
+CEE6   00         BRK
+CEE7   00         BRK
+CEE8   00         BRK
+CEE9   00         BRK
+CEEA   00         BRK
+CEEB   00         BRK
+CEEC   00         BRK
+CEED   00         BRK
+CEEE   00         BRK
+CEEF   00         BRK
+CEF0   00         BRK
+CEF1   00         BRK
+CEF2   00         BRK
+CEF3   00         BRK
+CEF4   00         BRK
+CEF5   00         BRK
+CEF6   00         BRK
+CEF7   00         BRK
+CEF8   00         BRK
+CEF9   00         BRK
+CEFA   00         BRK
+CEFB   00         BRK
+CEFC   00         BRK
+CEFD   00         BRK
+CEFE   00         BRK
+CEFF   00         BRK
+CF00   AD 00 DD   LDA $DD00
+CF03   29 0F      AND #$0F
+CF05   8D CF CF   STA $CFCF
+CF08   49 10      EOR #$10
+CF0A   8D C0 CF   STA $CFC0
+CF0D   49 30      EOR #$30
+CF0F   8D 6B CF   STA $CF6B
+CF12   49 B0      EOR #$B0
+CF14   8D 96 CF   STA $CF96
+CF17   49 50      EOR #$50
+CF19   8D A5 CF   STA $CFA5
+CF1C   8D E9 CF   STA $CFE9
+CF1F   A9 02      LDA #$02
+CF21   20 63 CF   JSR $CF63
+CF24   20 DC CF   JSR $CFDC
+CF27   20 83 CF   JSR $CF83
+CF2A   24 FE      BIT $FE
+CF2C   20 83 CF   JSR $CF83
+CF2F   24 FF      BIT $FF
+CF31   A0 00      LDY #$00
+CF33   20 83 CF   JSR $CF83
+CF36   C9 AC      CMP #$AC
+CF38   D0 15      BNE $CF4F
+CF3A   20 83 CF   JSR $CF83
+CF3D   C9 AC      CMP #$AC
+CF3F   F0 0E      BEQ $CF4F
+CF41   C9 FF      CMP #$FF
+CF43   F0 14      BEQ $CF59
+CF45   C9 F7      CMP #$F7
+CF47   F0 11      BEQ $CF5A
+CF49   20 DC CF   JSR $CFDC
+CF4C   4C 33 CF   JMP $CF33
+CF4F   91 FE      STA ($FE),Y
+CF51   C8         INY
+CF52   D0 02      BNE $CF56
+CF54   E6 FF      INC $FF
+CF56   4C 33 CF   JMP $CF33
+CF59   18         CLC
+CF5A   AE F9 CF   LDX $CFF9
+CF5D   AC FA CF   LDY $CFFA
+CF60   A9 00      LDA #$00
+CF62   60         RTS
+CF63   48         PHA
+CF64   8E F9 CF   STX $CFF9
+CF67   8C FA CF   STY $CFFA
+CF6A   A9 27      LDA #$27
+CF6C   8D 00 DD   STA $DD00
+CF6F   20 DC CF   JSR $CFDC
+CF72   68         PLA
+CF73   20 B0 CF   JSR $CFB0
+CF76   AD F9 CF   LDA $CFF9
+CF79   20 B0 CF   JSR $CFB0
+CF7C   AD FA CF   LDA $CFFA
+CF7F   20 B0 CF   JSR $CFB0
+CF82   60         RTS
+CF83   20 95 CF   JSR $CF95
+CF86   20 95 CF   JSR $CF95
+CF89   20 95 CF   JSR $CF95
+CF8C   20 95 CF   JSR $CF95
+CF8F   20 94 CF   JSR $CF94
+CF92   A5 FD      LDA $FD
+CF94   60         RTS
+CF95   A2 97      LDX #$97
+CF97   AD 00 DD   LDA $DD00
+CF9A   8E 00 DD   STX $DD00
+CF9D   0A         ASL A
+CF9E   66 FD      ROR $FD
+CFA0   48         PHA
+CFA1   68         PLA
+CFA2   48         PHA
+CFA3   68         PLA
+CFA4   A2 C7      LDX #$C7
+CFA6   AD 00 DD   LDA $DD00
+CFA9   8E 00 DD   STX $DD00
+CFAC   0A         ASL A
+CFAD   66 FD      ROR $FD
+CFAF   60         RTS
+CFB0   85 FD      STA $FD
+CFB2   20 BF CF   JSR $CFBF
+CFB5   20 BF CF   JSR $CFBF
+CFB8   20 BF CF   JSR $CFBF
+CFBB   20 BF CF   JSR $CFBF
+CFBE   60         RTS
+CFBF   A9 17      LDA #$17
+CFC1   46 FD      LSR $FD
+CFC3   90 02      BCC $CFC7
+CFC5   09 20      ORA #$20
+CFC7   8D 00 DD   STA $DD00
+CFCA   EA         NOP
+CFCB   EA         NOP
+CFCC   EA         NOP
+CFCD   EA         NOP
+CFCE   A9 07      LDA #$07
+CFD0   46 FD      LSR $FD
+CFD2   90 02      BCC $CFD6
+CFD4   09 20      ORA #$20
+CFD6   8D 00 DD   STA $DD00
+CFD9   EA         NOP
+CFDA   EA         NOP
+CFDB   60         RTS
+CFDC   A2 32      LDX #$32
+CFDE   CA         DEX
+CFDF   D0 FD      BNE $CFDE
+CFE1   AD 00 DD   LDA $DD00
+CFE4   29 40      AND #$40
+CFE6   F0 F9      BEQ $CFE1
+CFE8   A9 C7      LDA #$C7
+CFEA   8D 00 DD   STA $DD00
+CFED   A9 FE      LDA #$FE
+CFEF   8D FB CF   STA $CFFB
+CFF2   A2 05      LDX #$05
+CFF4   CA         DEX
+CFF5   D0 FD      BNE $CFF4
+CFF7   60         RTS
+CFF8   05 2D      ORA $2D
+CFFA   30 FE      BMI $CFFA
+CFFC   31 30      AND ($30),Y
+CFFE   FE 00 00   INC $0000,X
+                  .END

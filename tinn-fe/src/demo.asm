@@ -17,13 +17,13 @@
     sta $ff
     lda flo:  #<loadAddress
     sta $fe
-    jsr $cf00
+    jsr loader_load
 }
 
 BasicUpstart2(start)
 * = $0810 "Program Start"
 start:
-    //jsr $cc00 //init loader
+    jsr loader_init
     lda #$00
     sta $d020
     sta $d021
@@ -177,6 +177,7 @@ menu_faces:
     rts
 
 menu_greets:
+    load(0,1,2000)
     jsr ui_greets
     jsr greets_init
     // add interrupt hook
@@ -319,6 +320,16 @@ scr_06:
 .pc=* "colormap 06"
 col_06: 
 .import c64 "tinn-fe/rsrc/col06_packed.prg"
+
+loader_load:
+.import source "loader_load.asm"
+
+.pc=$2000 "Loader init and drivecode"
+loader_init:
+.import source "loader_init.asm"
+
+.segment Greets [outPrg="greets.prg"]
+.pc=$2000 "Greets"
 
 /*
 Greets mini intro

@@ -1,2 +1,4 @@
 miniconda
 .vscode
+*.sym
+
