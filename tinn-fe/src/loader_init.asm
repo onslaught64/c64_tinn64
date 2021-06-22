@@ -1,20 +1,4 @@
 /*
-cc00   4c 06 cc   jmp $cc06
-cc03   4c 00 cf   jmp $cf00
-*/
-
-/*
-Kernal Routines used by this code
-*/
-.const SETLFS=$ffba
-.const SETNAM=$ffbd
-.const OPEN=$ffc0
-.const CHKOUT=$ffc9
-.const CHROUT=$ffd2
-.const CLRCHN=$ffcc
-.const CLOSE=$ffc3
-
-/*
 ZP used by this code
 */
 .const ZPL=$9e
@@ -25,113 +9,120 @@ Load drivecode into the drive
 Entry point
 */
 init:
-    jsr func_setup
+    jsr i_cc52
     lda #<drivecode
     ldx #>drivecode
     sta ZPL
     stx ZPH
-!loop:
-    jsr func_load_drivecode
+i_cc11:
+    jsr i_cc72
     ldy #$00
-!:
+i_cc16:
     lda (ZPL),y
-    jsr func_sendchar
+    jsr i_cc68
     iny
     cpy #$10
-    bne !-
+    bne i_cc16
+
+    lda #$05 //debug
+    sta $d020 //debug
+
     lda #$0d
-    jsr func_sendchar
-    jsr func_close
-    jsr func_setup
+    jsr i_cc68
+    jsr i_ccae
+
+    lda #$06 //debug
+    sta $d020 //debug
+
+    jsr i_cc52
+
     lda ZPL
     clc
     adc #$10
     sta ZPL
-    bcc !+
+    bcc i_cc36
     inc ZPH
-!:
+i_cc36:
     cmp #<end_drivecode
     lda ZPH
     sbc #>end_drivecode
-    bcc !loop-
-    jsr func_sendcommand
-    jsr func_close
+    bcc i_cc11
+    jsr i_cc9a
+    jsr i_ccae
+
     lda #$c7
     sta $dd00
     ldx #$00
-!loop:
-    dey
-    bne !loop-
-    dex
-    bne !loop-
-    rts
 
-func_setup:
+    stx $d020 //debug
+
+i_cc4b:
+    dey
+    bne i_cc4b
+    dex
+    bne i_cc4b
+    rts
+i_cc52:
     ldx #$08
     lda #$0f
     tay
-    jsr SETLFS
+    jsr $ffba
     lda #$00
-    jsr SETNAM
-    jsr OPEN
+    jsr $ffbd
+    jsr $ffc0
     ldx #$0f
-    jsr CHKOUT
+    jsr $ffc9
     rts
-
-func_sendchar:
-    sty storage
-    jsr CHROUT
-    ldy storage
+i_cc68:
+    sty i_tmp
+    jsr $ffd2
+    ldy i_tmp
     rts
-
-func_load_drivecode:
+i_cc72:
     lda #$4d
-    jsr func_sendchar
+    jsr i_cc68
     lda #$2d
-    jsr func_sendchar
+    jsr i_cc68
     lda #$57
-    jsr func_sendchar
+    jsr i_cc68
     lda ZPL
     sec
     sbc #$b7
     php
     clc
-    jsr func_sendchar
+    jsr i_cc68
     plp
     lda ZPH
     sbc #$c7
     clc
-    jsr func_sendchar
+    jsr i_cc68
     lda #$10
-    jsr func_sendchar
+    jsr i_cc68
     rts
-
-func_sendcommand:
+i_cc9a:
     ldy #$00
-!:
-    lda payload,y
-    jsr func_sendchar
+i_cc9c:
+    lda i_cca8,y
+    jsr i_cc68
     iny
     cpy #$06
-    bne !-
+    bne i_cc9c
     rts
-
-payload:
-.byte  $4d, $2d, $45, $00, $05, $0d
-storage:
-.byte $00
+i_cca8:
+.byte $4d, $2d, $45, $00, $05, $0d
 /*
-This was the payload data
 cca8   4d 2d 45   eor $452d
 ccab   00         brk
 ccac   05 0d      ora $0d
 */
-
-func_close:
-    jsr CLRCHN
+i_ccae:
+    jsr $ffcc
     lda #$0f
-    jsr CLOSE
+    jsr $ffc3
     rts
+i_tmp:
+.byte $00
+
 
 drivecode:
 .pseudopc $0500 {                
@@ -362,7 +353,6 @@ dc_0696:
 dc_06a5:   .byte $00
 dc_06a6:   .byte $00
 dc_06a7:   .byte $00
-dc_06a8:   .byte $00
 }
 end_drivecode:
 .byte $00

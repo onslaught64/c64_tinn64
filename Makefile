@@ -22,15 +22,16 @@ tinn-fe/src/fe.prg: tinn-fe/src/fe.asm
 tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm ## compile c64 demo
 		kick $<
 
-disk.d64: tinn-fe/src/fe.prg tinn-fe/src/demo.prg ## create complete c64 disk demo
+disk.d64: tinn-fe/src/demo.prg ## create complete c64 disk demo
 		c1541 -format "defame,2a" d64 $@
-		c1541 -attach $@ -write tinn-fe/src/fe.prg "test-front-end" 
+		c1541 -attach $@ -write tinn-fe/src/demo.prg "start" 
+		c1541 -attach $@ -write tinn-fe/src/greets.prg "01"
 # 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
 # 		c1541 -attach $@ -write tinn-fe/src/intro.prg "01"
 # 		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
 # 		c1541 -attach $@ -write tinn-fe/rsrc/logo.prg "03"
 # 		c1541 -attach $@ -write tinn-fe/rsrc/brain.prg "04"
-		#c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
+#		c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
 
 clean:
 		rm tinn-fe/src/*.sym tinn-fe/src/*.prg *.d64
