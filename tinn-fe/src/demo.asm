@@ -23,7 +23,9 @@
 BasicUpstart2(start)
 * = $0810 "Program Start"
 start:
+    sei
     jsr loader_init
+    cli
     lda #$00
     sta $d020
     sta $d021

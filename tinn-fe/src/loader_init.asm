@@ -9,7 +9,7 @@ Load drivecode into the drive
 Entry point
 */
 init:
-    jsr i_cc52
+    jsr i_open_chn
     lda #<drivecode
     ldx #>drivecode
     sta ZPL
@@ -19,22 +19,17 @@ i_cc11:
     ldy #$00
 i_cc16:
     lda (ZPL),y
-    jsr i_cc68
+    jsr i_write_byte
     iny
     cpy #$10
     bne i_cc16
 
-    lda #$05 //debug
-    sta $d020 //debug
-
     lda #$0d
-    jsr i_cc68
-    jsr i_ccae
+    jsr i_write_byte
+    jsr i_close_chn
+    jsr i_open_chn
 
-    lda #$06 //debug
-    sta $d020 //debug
-
-    jsr i_cc52
+    inc $d020
 
     lda ZPL
     clc
@@ -43,82 +38,79 @@ i_cc16:
     bcc i_cc36
     inc ZPH
 i_cc36:
-    cmp #<end_drivecode
+    cmp #<(end_drivecode - 1)
     lda ZPH
-    sbc #>end_drivecode
+    sbc #>(end_drivecode - 1)
     bcc i_cc11
     jsr i_cc9a
-    jsr i_ccae
+    jsr i_close_chn
 
     lda #$c7
-    sta $dd00
+    sta $dd00 //bank 0, 232 out, data in, clock in
     ldx #$00
-
-    stx $d020 //debug
-
 i_cc4b:
     dey
     bne i_cc4b
     dex
     bne i_cc4b
     rts
-i_cc52:
+i_open_chn:
     ldx #$08
     lda #$0f
     tay
-    jsr $ffba
+    jsr $ffba //SETLFS. Set file parameters. 15,8,15
     lda #$00
-    jsr $ffbd
-    jsr $ffc0
-    ldx #$0f
-    jsr $ffc9
+    jsr $ffbd //SETNAM. Set file name parameters.
+    jsr $ffc0 //OPEN. Open file. (Must call SETLFS and SETNAM beforehands.)
+    ldx #$0f 
+    jsr $ffc9 //CHKOUT. Define file as default output. (Must call OPEN beforehands.) 15
     rts
-i_cc68:
+i_write_byte:
     sty i_tmp
-    jsr $ffd2
+    jsr $ffd2 //CHROUT. Write byte to default output. (If not screen, must call OPEN and CHKOUT beforehands.)
     ldy i_tmp
     rts
 i_cc72:
-    lda #$4d
-    jsr i_cc68
-    lda #$2d
-    jsr i_cc68
-    lda #$57
-    jsr i_cc68
+    lda #$4d //M
+    jsr i_write_byte 
+    lda #$2d //-
+    jsr i_write_byte
+    lda #$57 //W
+    jsr i_write_byte
     lda ZPL
     sec
-    sbc #$b7
+    sbc # <drivecode  //$b7
     php
     clc
-    jsr i_cc68
+    jsr i_write_byte
     plp
     lda ZPH
-    sbc #$c7
+    sbc # (>drivecode) - 5   //$c7 
     clc
-    jsr i_cc68
-    lda #$10
-    jsr i_cc68
+    jsr i_write_byte
+    lda #$10 //number of bytes to send
+    jsr i_write_byte
     rts
 i_cc9a:
     ldy #$00
 i_cc9c:
     lda i_cca8,y
-    jsr i_cc68
+    jsr i_write_byte
     iny
     cpy #$06
     bne i_cc9c
     rts
 i_cca8:
-.byte $4d, $2d, $45, $00, $05, $0d
+.byte $4d, $2d, $45, $00, $05, $0d   //M-E 00 05 <return> 
 /*
 cca8   4d 2d 45   eor $452d
 ccab   00         brk
 ccac   05 0d      ora $0d
 */
-i_ccae:
-    jsr $ffcc
+i_close_chn:
+    jsr $ffcc //CLRCHN. Close default input/output files (for serial bus, send UNTALK and/or UNLISTEN); restore default input/output to keyboard/screen.
     lda #$0f
-    jsr $ffc3
+    jsr $ffc3 //CLOSE. Close file.
     rts
 i_tmp:
 .byte $00
