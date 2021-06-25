@@ -179,7 +179,8 @@ menu_faces:
     rts
 
 menu_greets:
-    load(0,1,2000)
+.pc = * "DEBUG"
+    load($30,$31,$2000)
     jsr ui_greets
     jsr greets_init
     // add interrupt hook
