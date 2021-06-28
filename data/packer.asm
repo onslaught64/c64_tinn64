@@ -90,6 +90,10 @@ packer("scr04.prg")
 packer("scr05.prg")
 .segment Screen06_packed [outPrg="scr06_packed.prg"]
 packer("scr06.prg")
+.segment Screen07_packed [outPrg="scr07_packed.prg"]
+packer("scr07.prg")
+.segment Screen08_packed [outPrg="scr08_packed.prg"]
+packer("scr08.prg")
 .segment Color01_packed [outPrg="col01_packed.prg"]
 packer("col01.prg")
 .segment Color02_packed [outPrg="col02_packed.prg"]
@@ -102,3 +106,7 @@ packer("col04.prg")
 packer("col05.prg")
 .segment Color06_packed [outPrg="col06_packed.prg"]
 packer("col06.prg")
+.segment Color07_packed [outPrg="col07_packed.prg"]
+packer("col07.prg")
+.segment Color08_packed [outPrg="col08_packed.prg"]
+packer("col08.prg")

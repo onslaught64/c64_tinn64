@@ -180,6 +180,7 @@ menu_faces:
 
 menu_greets:
 .pc = * "DEBUG"
+    jsr ui_loading
     load($30,$31,$2000)
     jsr ui_greets
     jsr greets_init
@@ -254,6 +255,21 @@ ui_draw:
     jsr depack
     rts
 
+ui_loading:
+    lda #$66
+    jsr enable_trans
+    ldx #<scr_08
+    ldy #>scr_08
+    lda #$04
+    jsr depack
+    lda #$0f
+    jsr enable_trans
+    ldx #<col_08
+    ldy #>col_08
+    lda #$d8
+    jsr depack
+    rts
+
 ui_output:
     jsr disable_trans
     ldx #<scr_05
@@ -266,17 +282,7 @@ ui_output:
     jsr depack
     rts
 
-ui_greets:
-    jsr disable_trans
-    ldx #<scr_06
-    ldy #>scr_06
-    lda #$04
-    jsr depack
-    ldx #<col_06
-    ldy #>col_06
-    lda #$d8
-    jsr depack
-    rts
+
 
 /*
 Packed Screens
@@ -317,12 +323,12 @@ scr_05:
 col_05: 
 .import c64 "tinn-fe/rsrc/col05_packed.prg"
 
-.pc=* "screen 06"
-scr_06:
-.import c64 "tinn-fe/rsrc/scr06_packed.prg"
-.pc=* "colormap 06"
-col_06: 
-.import c64 "tinn-fe/rsrc/col06_packed.prg"
+.pc=* "screen 08"
+scr_08:
+.import c64 "tinn-fe/rsrc/scr08_packed.prg"
+.pc=* "colormap 08"
+col_08: 
+.import c64 "tinn-fe/rsrc/col08_packed.prg"
 
 loader_load:
 .import source "loader_load.asm"
@@ -331,12 +337,55 @@ loader_load:
 loader_init:
 .import source "loader_init.asm"
 
-.segment Greets [outPrg="greets.prg"]
-.pc=$2000 "Greets"
+/*
+Noter (readme)
+*/
+.segment Noter [outPrg="noter.prg"]
+.pc=$2000 "Noter"
+noter_init:
+
+.pc=* "noter ui"
+ui_noter:
+    jsr disable_trans
+    ldx #<scr_07
+    ldy #>scr_07
+    lda #$04
+    jsr depack
+    ldx #<col_07
+    ldy #>col_07
+    lda #$d8
+    jsr depack
+    rts
+
+.pc=* "noter cleanup"
+noter_cleanup:
+    lda #$00
+    sta $d015
+    sei
+    lda #<irq    
+    sta $0314    
+    lda #>irq
+    sta $0315
+    cli 
+    rts
+
+.pc=* "noter irq"
+noter_irq:
+
+.pc=* "Noter Packed Charmap and Colormap"
+.pc=* "screen 07"
+scr_07:
+.import c64 "tinn-fe/rsrc/scr07_packed.prg"
+.pc=* "colormap 07"
+col_07: 
+.import c64 "tinn-fe/rsrc/col07_packed.prg"
+
 
 /*
 Greets mini intro
 */
+.segment Greets [outPrg="greets.prg"]
+.pc=$2000 "Greets"
 .pc=* "greets init"
 greets_init:
     lda #%11111111
@@ -378,6 +427,18 @@ greets_init:
     cli
     rts
 
+.pc=* "greets ui"
+ui_greets:
+    jsr disable_trans
+    ldx #<scr_06
+    ldy #>scr_06
+    lda #$04
+    jsr depack
+    ldx #<col_06
+    ldy #>col_06
+    lda #$d8
+    jsr depack
+    rts
 
 .pc=* "greets cleanup"
 greets_cleanup:
@@ -636,6 +697,14 @@ scroll_colors_index:
 .byte $04, $03, $02, $01, $00, $04, $03, $02
 scroll_colors_delay:
 .byte $00
+
+.pc=* "Greets Packed Charmap and Colormap"
+.pc=* "screen 06"
+scr_06:
+.import c64 "tinn-fe/rsrc/scr06_packed.prg"
+.pc=* "colormap 06"
+col_06: 
+.import c64 "tinn-fe/rsrc/col06_packed.prg"
 
 //* = $cc00
 //.import c64 "tinn-fe/rsrc/realloader.prg"

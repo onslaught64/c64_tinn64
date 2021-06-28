@@ -26,6 +26,7 @@ disk.d64: tinn-fe/src/demo.prg ## create complete c64 disk demo
 		c1541 -format "defame,2a" d64 $@
 		c1541 -attach $@ -write tinn-fe/src/demo.prg "start" 
 		c1541 -attach $@ -write tinn-fe/src/greets.prg "01"
+		c1541 -attach $@ -write tinn-fe/src/noter.prg "02"
 # 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
 # 		c1541 -attach $@ -write tinn-fe/src/intro.prg "01"
 # 		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
@@ -69,21 +70,29 @@ build_screens: ## make the screen datafiles using petscii packer
 		mv data/col04_packed.prg tinn-fe/rsrc/col04_packed.prg
 		mv data/col05_packed.prg tinn-fe/rsrc/col05_packed.prg
 		mv data/col06_packed.prg tinn-fe/rsrc/col06_packed.prg
+		mv data/col07_packed.prg tinn-fe/rsrc/col07_packed.prg
+		mv data/col08_packed.prg tinn-fe/rsrc/col08_packed.prg
 		mv data/scr01_packed.prg tinn-fe/rsrc/scr01_packed.prg
 		mv data/scr02_packed.prg tinn-fe/rsrc/scr02_packed.prg
 		mv data/scr03_packed.prg tinn-fe/rsrc/scr03_packed.prg
 		mv data/scr04_packed.prg tinn-fe/rsrc/scr04_packed.prg
 		mv data/scr05_packed.prg tinn-fe/rsrc/scr05_packed.prg
 		mv data/scr06_packed.prg tinn-fe/rsrc/scr06_packed.prg
+		mv data/scr07_packed.prg tinn-fe/rsrc/scr07_packed.prg
+		mv data/scr08_packed.prg tinn-fe/rsrc/scr08_packed.prg
 		rm data/col01.prg
 		rm data/col02.prg
 		rm data/col03.prg
 		rm data/col04.prg
 		rm data/col05.prg
 		rm data/col06.prg
+		rm data/col07.prg
+		rm data/col08.prg
 		rm data/scr01.prg
 		rm data/scr02.prg
 		rm data/scr03.prg
 		rm data/scr04.prg
 		rm data/scr05.prg
 		rm data/scr06.prg
+		rm data/scr07.prg
+		rm data/scr08.prg
