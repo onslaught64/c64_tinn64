@@ -8,6 +8,9 @@
 .label scroller_ptr_lo=$04
 .label scroller_ptr_hi=$05
 
+.const rzpl = $97
+.const rzph = $98
+
 
 .macro load(filenameA, filenameB, loadAddress){
     load:
@@ -129,8 +132,10 @@ press_menu:
     beq !b+
     cmp #$03
     beq !c+
-    cmp #$04
-    beq !d+
+    cmp #$07
+    beq !g+
+    cmp #$0e
+    beq !n+
     cmp #$2f
     bne press_menu
     tya
@@ -146,8 +151,11 @@ press_menu:
 !c:
     jsr menu_faces
     rts
-!d:
+!g:
     jsr menu_greets
+    rts
+!n:
+    jsr menu_noter
     rts
 !help:
     jsr menu_instructions
@@ -179,17 +187,20 @@ menu_faces:
     rts
 
 menu_greets:
-.pc = * "DEBUG"
     jsr ui_loading
     load($30,$31,$2000)
     jsr ui_greets
     jsr greets_init
-    // add interrupt hook
-    // set up sprites
     jsr press_return
     jsr greets_cleanup
-    // clean up interrupt hook
-    // clean up sprites
+    rts
+
+menu_noter:
+    jsr ui_loading
+    load($30,$32,$2000)
+    jsr noter_init
+    jsr press_return
+    jsr noter_cleanup
     rts
 
 menu_instructions:
@@ -343,6 +354,25 @@ Noter (readme)
 .segment Noter [outPrg="noter.prg"]
 .pc=$2000 "Noter"
 noter_init:
+    jsr ui_noter
+    //loop:
+    //render note output
+    //render scrollbar
+    //scan keyboard
+    // if return exit
+    // if up move line ptr back
+    // if down move line ptr forward
+    // if line ptr > row count - screen height; line ptr = row count - screen height
+    // if line ptr == 0; line ptr = 1
+    //goto loop
+    rts
+
+
+
+noter_render_text:
+    ldx #$00
+    ldy #$00
+
 
 .pc=* "noter ui"
 ui_noter:
@@ -380,6 +410,38 @@ scr_07:
 col_07: 
 .import c64 "tinn-fe/rsrc/col07_packed.prg"
 
+.pc=* "noter text"
+noter_text:
+.text "                    "
+.text "Hello. This is a    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+.text "                    "
+noter_text_end:
+.byte $00
 
 /*
 Greets mini intro
@@ -388,6 +450,7 @@ Greets mini intro
 .pc=$2000 "Greets"
 .pc=* "greets init"
 greets_init:
+    jsr ui_greets
     lda #%11111111
     sta $d015
     lda #$00

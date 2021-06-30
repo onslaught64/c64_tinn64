@@ -17,7 +17,7 @@ This is a macro for equal char packing.
 	}
 
 	.for (var i=0;i<data.getSize(); i++){
-        .print data.get(i).number()
+        // .print data.get(i).number()
 		.eval tmp = hist.get(data.uget(i).number())
         .eval tmp++
 		.eval hist.set(data.uget(i).number(), tmp)
@@ -74,7 +74,7 @@ This is a macro for equal char packing.
 	.eval screenData.add($ff)
 	.eval screenData.add($ff)
 	.eval screenData.add($ff)
-    .print screenData.size() 
+    //.print screenData.size() 
     .fill screenData.size(), screenData.get(i)
 }
 .pc = $2000
