@@ -8,9 +8,6 @@
 .label scroller_ptr_lo=$04
 .label scroller_ptr_hi=$05
 
-.const rzpl = $97
-.const rzph = $98
-
 
 .macro load(filenameA, filenameB, loadAddress){
     load:
@@ -352,9 +349,29 @@ loader_init:
 Noter (readme)
 */
 .segment Noter [outPrg="noter.prg"]
+.const rzpl = $97
+.const rzph = $98
+.const qzpl = $95
+.const qzph = $96
+.const nstep = $94
+.const n_top = 04
+.const n_bot = 18
+.const n_dif = n_bot - n_top
+.const n_width = 35
 .pc=$2000 "Noter"
 noter_init:
     jsr ui_noter
+    lda #>noter_text
+    sta rzph
+    lda #<noter_text
+    sta rzpl
+    lda #>(noter_text + (n_dif * n_width))
+    sta qzph
+    lda #<(noter_text + (n_dif * n_width))
+    sta qzpl
+    lda #$00
+    sta nstep
+    jsr noter_blit_down
     //loop:
     //render note output
     //render scrollbar
@@ -362,17 +379,8 @@ noter_init:
     // if return exit
     // if up move line ptr back
     // if down move line ptr forward
-    // if line ptr > row count - screen height; line ptr = row count - screen height
-    // if line ptr == 0; line ptr = 1
-    //goto loop
-    rts
-
-
-
-noter_render_text:
-    ldx #$00
-    ldy #$00
-
+    // if line ptr > row coun
+    rts   
 
 .pc=* "noter ui"
 ui_noter:
@@ -402,6 +410,86 @@ noter_cleanup:
 .pc=* "noter irq"
 noter_irq:
 
+.pc=* "noter functions"
+noter_blit_up:
+    lda nstep
+    cmp #$00
+    bne !skip+
+    rts
+!skip:
+    inc nstep
+    ldy #$02
+    !loop:
+    .for(var i=(n_top + 1);i<n_bot;i++){
+        lda $0400 + ($28 * i) - 1,x
+        sta $0400 + ($28 * (i - 1)) - 1,y
+    }
+    lda (qzpl),y
+    sta $0400 + ($28 * (n_bot)),x
+    iny
+    inx
+    cpy #n_width
+    bne !loop-
+    sec
+    lda qzpl
+    sbc #n_width
+    sta qzpl
+    lda qzph
+    sbc #$00
+    sta qzph
+    sec
+    lda rzpl
+    sbc #n_width
+    sta rzpl
+    lda rzph
+    sbc #$00
+    sta rzph
+    rts
+
+noter_blit_down:
+    lda nstep
+    cmp # ((noter_text_end - noter_text)/n_width)
+    bne !skip+
+    rts
+!skip:
+    dec nstep
+    ldx #$02
+    ldy #$00
+    !loop:
+    .for(var i=n_bot;i>n_top;i--){
+        lda $0400 + ($28 * (i - 1)) - 1,x
+        sta $0400 + ($28 * (i)) - 1,x
+    }
+    lda (rzpl),y
+    sta $0400 + ($28 * n_top),x
+    iny
+    inx
+    cpy #n_width
+    bne !loop-
+    clc
+    lda qzpl
+    adc #n_width
+    sta qzpl
+    lda qzph
+    adc #$00
+    sta qzph
+    clc
+    lda rzpl
+    adc #n_width
+    sta rzpl
+    lda rzph
+    adc #$00
+    sta rzph
+    rts
+
+noter_draw_bottom_line:
+
+noter_draw_top_line:
+
+noter_refresh_scrollbar:
+
+
+
 .pc=* "Noter Packed Charmap and Colormap"
 .pc=* "screen 07"
 scr_07:
@@ -412,34 +500,38 @@ col_07:
 
 .pc=* "noter text"
 noter_text:
-.text "                    "
-.text "Hello. This is a    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
-.text "                    "
+.text "This is a noter test showing you   "
+.text "Second line ot the                 "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
+.text "                                   "
 noter_text_end:
 .byte $00
 
