@@ -349,12 +349,12 @@ loader_init:
 Noter (readme)
 */
 .segment Noter [outPrg="noter.prg"]
-.const rzpl = $97
-.const rzph = $98
-.const qzpl = $95
-.const qzph = $96
+.const n_start_zp_l = $97
+.const n_start_zp_h = $98
+.const n_end_zp_l = $95
+.const n_end_zp_h = $96
 .const nstep = $94
-.const n_top = 04
+.const n_top = 05
 .const n_bot = 18
 .const n_dif = n_bot - n_top
 .const n_width = 35
@@ -362,25 +362,51 @@ Noter (readme)
 noter_init:
     jsr ui_noter
     lda #>noter_text
-    sta rzph
+    sta n_start_zp_h
     lda #<noter_text
-    sta rzpl
+    sta n_start_zp_l
     lda #>(noter_text + (n_dif * n_width))
-    sta qzph
+    sta n_end_zp_h
     lda #<(noter_text + (n_dif * n_width))
-    sta qzpl
+    sta n_end_zp_l
     lda #$00
     sta nstep
-    jsr noter_blit_down
-    //loop:
-    //render note output
-    //render scrollbar
-    //scan keyboard
-    // if return exit
-    // if up move line ptr back
-    // if down move line ptr forward
-    // if line ptr > row coun
+    jsr noter_blit_init
+    jsr noter_loop
+    jsr noter_cleanup
     rts   
+
+.pc=* "noter keyboard handler loop"
+noter_loop:
+    ldx #$00
+    ldy #$f0
+!loop:
+    inx
+    bne !loop-
+    iny
+    bne !loop-
+    jsr keyboard
+    bcs noter_loop
+    txa
+    and #%00000010
+    bne !return+
+    tya
+    and #%01010000
+    bne !shift+
+    txa
+    and #%10000100
+    beq noter_loop
+    jsr noter_blit_up
+    jmp noter_loop
+!shift:
+    txa
+    and #%10000100
+    beq noter_loop
+    jsr noter_blit_down
+    jmp noter_loop
+!return:
+    rts
+
 
 .pc=* "noter ui"
 ui_noter:
@@ -411,44 +437,68 @@ noter_cleanup:
 noter_irq:
 
 .pc=* "noter functions"
+/*
+========================
+*/
+noter_blit_init:
+    ldx #$00
+    ldy #$02
+    !loop:
+    .for(var i=n_top;i<n_bot;i++){
+        lda noter_text + (n_width * (i - n_top)),x
+        sta $0400 + ($28 * i),y
+    }
+    inx
+    iny
+    cpx #n_width
+    bne !loop-
+    rts
+
+/*
+========================
+*/
 noter_blit_up:
     lda nstep
-    cmp #$00
+    cmp # ((noter_text_end - noter_text)/n_width)
     bne !skip+
     rts
 !skip:
     inc nstep
-    ldy #$02
+    ldx #$02
+    ldy #$00
     !loop:
-    .for(var i=(n_top + 1);i<n_bot;i++){
-        lda $0400 + ($28 * i) - 1,x
-        sta $0400 + ($28 * (i - 1)) - 1,y
+    .for(var i=n_top;i<n_bot;i++){
+        lda $0400 + ($28 * (i+1)),x
+        sta $0400 + ($28 * i),x
     }
-    lda (qzpl),y
+    lda (n_end_zp_l),y
     sta $0400 + ($28 * (n_bot)),x
     iny
     inx
     cpy #n_width
     bne !loop-
-    sec
-    lda qzpl
-    sbc #n_width
-    sta qzpl
-    lda qzph
-    sbc #$00
-    sta qzph
-    sec
-    lda rzpl
-    sbc #n_width
-    sta rzpl
-    lda rzph
-    sbc #$00
-    sta rzph
+    clc
+    lda n_end_zp_l
+    adc #n_width
+    sta n_end_zp_l
+    lda n_end_zp_h
+    adc #$00
+    sta n_end_zp_h
+    clc
+    lda n_start_zp_l
+    adc #n_width
+    sta n_start_zp_l
+    lda n_start_zp_h
+    adc #$00
+    sta n_start_zp_h
     rts
 
+/*
+========================
+*/
 noter_blit_down:
     lda nstep
-    cmp # ((noter_text_end - noter_text)/n_width)
+    cmp #$00
     bne !skip+
     rts
 !skip:
@@ -457,34 +507,30 @@ noter_blit_down:
     ldy #$00
     !loop:
     .for(var i=n_bot;i>n_top;i--){
-        lda $0400 + ($28 * (i - 1)) - 1,x
-        sta $0400 + ($28 * (i)) - 1,x
+        lda $0400 + ($28 * (i - 1)),x
+        sta $0400 + ($28 * (i)),x
     }
-    lda (rzpl),y
+    lda (n_start_zp_l),y
     sta $0400 + ($28 * n_top),x
     iny
     inx
     cpy #n_width
     bne !loop-
     clc
-    lda qzpl
+    lda n_end_zp_l
     adc #n_width
-    sta qzpl
-    lda qzph
+    sta n_end_zp_l
+    lda n_end_zp_h
     adc #$00
-    sta qzph
+    sta n_end_zp_h
     clc
-    lda rzpl
+    lda n_start_zp_l
     adc #n_width
-    sta rzpl
-    lda rzph
+    sta n_start_zp_l
+    lda n_start_zp_h
     adc #$00
-    sta rzph
+    sta n_start_zp_h
     rts
-
-noter_draw_bottom_line:
-
-noter_draw_top_line:
 
 noter_refresh_scrollbar:
 
@@ -502,12 +548,12 @@ col_07:
 noter_text:
 .text "This is a noter test showing you   "
 .text "Second line ot the                 "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
+.text "  c                                "
+.text "   d                               "
+.text "    e                              "
+.text "     f                             "
+.text "      g                            "
+.text "       h                           "
 .text "                                   "
 .text "                                   "
 .text "                                   "
