@@ -354,20 +354,20 @@ Noter (readme)
 .const n_end_zp_l = $95
 .const n_end_zp_h = $96
 .const nstep = $94
-.const n_top = 05
+.const n_top = 04
 .const n_bot = 18
 .const n_dif = n_bot - n_top
 .const n_width = 35
 .pc=$2000 "Noter"
 noter_init:
     jsr ui_noter
-    lda #>noter_text
+    lda #>noter_text - (1 * n_width)
     sta n_start_zp_h
-    lda #<noter_text
+    lda #<noter_text - (1 * n_width)
     sta n_start_zp_l
-    lda #>(noter_text + (n_dif * n_width))
+    lda #>(noter_text + ((n_dif+1) * n_width))
     sta n_end_zp_h
-    lda #<(noter_text + (n_dif * n_width))
+    lda #<(noter_text + ((n_dif+1) * n_width))
     sta n_end_zp_l
     lda #$00
     sta nstep
@@ -379,7 +379,7 @@ noter_init:
 .pc=* "noter keyboard handler loop"
 noter_loop:
     ldx #$00
-    ldy #$f0
+    ldy #$d0
 !loop:
     inx
     bne !loop-
@@ -444,7 +444,7 @@ noter_blit_init:
     ldx #$00
     ldy #$02
     !loop:
-    .for(var i=n_top;i<n_bot;i++){
+    .for(var i=n_top;i<=n_bot;i++){
         lda noter_text + (n_width * (i - n_top)),x
         sta $0400 + ($28 * i),y
     }
@@ -459,7 +459,7 @@ noter_blit_init:
 */
 noter_blit_up:
     lda nstep
-    cmp # ((noter_text_end - noter_text)/n_width)
+    cmp # ((noter_text_end - noter_text)/n_width) - (n_dif + 1)
     bne !skip+
     rts
 !skip:
@@ -516,19 +516,19 @@ noter_blit_down:
     inx
     cpy #n_width
     bne !loop-
-    clc
+    sec
     lda n_end_zp_l
-    adc #n_width
+    sbc #n_width
     sta n_end_zp_l
     lda n_end_zp_h
-    adc #$00
+    sbc #$00
     sta n_end_zp_h
-    clc
+    sec
     lda n_start_zp_l
-    adc #n_width
+    sbc #n_width
     sta n_start_zp_l
     lda n_start_zp_h
-    adc #$00
+    sbc #$00
     sta n_start_zp_h
     rts
 
@@ -554,14 +554,42 @@ noter_text:
 .text "     f                             "
 .text "      g                            "
 .text "       h                           "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
-.text "                                   "
+.text "  c                                "
+.text "   d                               "
+.text "    e                              "
+.text "     f                             "
+.text "      g                            "
+.text "       h                           "
+.text "  c                                "
+.text "   d                               "
+.text "    e                              "
+.text "     f                             "
+.text "      g                            "
+.text "       h                           "
+.text "  c                                "
+.text "   d                               "
+.text "    e                              "
+.text "     f                             "
+.text "      g                            "
+.text "       h                           "
+.text "  c                                "
+.text "   d                               "
+.text "    e                              "
+.text "     f                             "
+.text "      g                            "
+.text "       h                           "
+.text "  c                                "
+.text "   d                               "
+.text "    e                              "
+.text "     f                             "
+.text "      g                            "
+.text "       h                           "
+.text "  c                                "
+.text "   d                               "
+.text "    e                              "
+.text "     f                             "
+.text "      g                            "
+.text "       h                           "
 .text "                                   "
 .text "                                   "
 .text "                                   "
