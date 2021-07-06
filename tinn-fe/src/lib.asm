@@ -522,45 +522,23 @@ disable_transparency:
 	rts
 
 read:
-	stx r_recover + 1
-	sty r_recover + 3
-	ldy src + 2
-	ldx src + 1
-	inx
-	cpx #$00
-	bne src
-	iny
 src:
 	lda $ffff
-	stx src + 1
-	sty src + 2
-r_recover:
-	ldx #$00
-	ldy #$00
-	rts
+	inc src + 1
+	bne !+
+	inc src + 2
+!:	rts
 
 write:
-	stx w_recover + 1
-	sty w_recover + 3
-	ldy dst + 2
-	ldx dst + 1
-	inx
-	cpx #$00
-	bne w_trans_enable
-	iny
 w_trans_enable:
 	cmp #$66
 	beq w_trans
 dst:	
 	sta $ffff
 w_trans:
-	stx dst + 1
-	sty dst + 2
-w_recover:
-	ldx #$00
-	ldy #$00
-	rts
-
-
+	inc dst + 1
+	bne !+
+	inc dst + 2
+!:	rts
 
 }

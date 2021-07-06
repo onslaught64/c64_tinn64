@@ -354,6 +354,8 @@ Noter (readme)
 .const n_end_zp_l = $95
 .const n_end_zp_h = $96
 .const nstep = $94
+.const n_scr_zp_h = $93
+.const n_scr_zp_l = $92
 .const n_top = 04
 .const n_bot = 18
 .const n_dif = n_bot - n_top
@@ -372,6 +374,7 @@ noter_init:
     lda #$00
     sta nstep
     jsr noter_blit_init
+    jsr noter_scroll_draw
     jsr noter_loop
     jsr noter_cleanup
     rts   
@@ -379,7 +382,7 @@ noter_init:
 .pc=* "noter keyboard handler loop"
 noter_loop:
     ldx #$00
-    ldy #$d0
+    ldy #$a0
 !loop:
     inx
     bne !loop-
@@ -397,12 +400,14 @@ noter_loop:
     and #%10000100
     beq noter_loop
     jsr noter_blit_up
+    jsr noter_scroll_draw
     jmp noter_loop
 !shift:
     txa
     and #%10000100
     beq noter_loop
     jsr noter_blit_down
+    jsr noter_scroll_draw
     jmp noter_loop
 !return:
     rts
@@ -440,6 +445,42 @@ noter_irq:
 /*
 ========================
 */
+noter_scroll_draw:
+    lda #$0b
+    .for(var i=0;i<=n_dif;i++){
+        sta $d800 + ((i + n_top) * $28) + n_width + 2
+    }
+    .var scr_addr = $d800 + (n_top * $28) + n_width + 2
+    lda #>scr_addr
+    sta n_scr_zp_h
+    lda #<scr_addr
+    sta n_scr_zp_l
+    lda nstep
+    // tweak these based on the size of the text to get the scroll ratio correct
+    lsr
+    lsr
+    // lsr
+    // lsr
+    ldy #$00
+    tax
+!loop:
+    cpx #$00
+    beq !draw+
+    dex
+    clc
+    lda n_scr_zp_l
+    adc #$28
+    sta n_scr_zp_l
+    lda n_scr_zp_h
+    adc #$00
+    sta n_scr_zp_h
+    jmp !loop-
+!draw:
+    lda #$0c
+    sta (n_scr_zp_l),y
+    rts
+
+
 noter_blit_init:
     ldx #$00
     ldy #$02
