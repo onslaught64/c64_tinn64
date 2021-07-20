@@ -30,6 +30,7 @@ start:
     sta $d020
     sta $d021
     jsr $e544 // clear screen
+    jsr reset_sprites
     lda#$17
     sta $d018	
     lda#$80
@@ -163,9 +164,12 @@ Menu handler functions
 */
 
 menu_numbers:
+    jsr ui_loading
+    load($30,$33,$2000)
     jsr ui_draw
-    jsr press_space
-    jsr ui_output
+    // jsr press_space
+    // jsr ui_output
+    jsr draw_init
     jsr press_return
     rts
 
@@ -290,7 +294,37 @@ ui_output:
     jsr depack
     rts
 
-
+.const zp_sp_init_l=$92
+.const zp_sp_init_h=$93
+reset_sprites:
+    .var sp_max = sprite_base + ($40 * 8) - 1
+    lda #$00
+    lda #>sprite_base
+    sta zp_sp_init_h
+    lda #<sprite_base
+    sta zp_sp_init_l
+    ldy #$00
+    lda #$00
+!loop:
+    sta (zp_sp_init_l),y
+    ldx zp_sp_init_l
+    cpx #<sp_max
+    bne !skip+
+    ldx zp_sp_init_h
+    cpx #>sp_max
+    bne !skip+
+    jmp !done+
+!skip:
+    inc zp_sp_init_l
+    bne !loop-
+    inc zp_sp_init_h
+    bne !loop-
+!done:
+    .for(var i=0;i<8;i++){
+        lda # ((sprite_base / $40) + i)
+        sta $07f8 + i
+    }
+    rts
 
 /*
 Packed Screens
@@ -345,8 +379,12 @@ loader_load:
 loader_init:
 .import source "loader_init.asm"
 
+
+
 /*
+-------------------------------------------------------------------------------------
 Noter (readme)
+-------------------------------------------------------------------------------------
 */
 .segment Noter [outPrg="noter.prg"]
 .const n_start_zp_l = $97
@@ -480,7 +518,6 @@ noter_scroll_draw:
     sta (n_scr_zp_l),y
     rts
 
-
 noter_blit_init:
     ldx #$00
     ldy #$02
@@ -573,10 +610,6 @@ noter_blit_down:
     sta n_start_zp_h
     rts
 
-noter_refresh_scrollbar:
-
-
-
 .pc=* "Noter Packed Charmap and Colormap"
 .pc=* "screen 07"
 scr_07:
@@ -650,14 +683,19 @@ noter_text:
 noter_text_end:
 .byte $00
 
+
+
 /*
+-------------------------------------------------------------------------------------
 Greets mini intro
+-------------------------------------------------------------------------------------
 */
 .segment Greets [outPrg="greets.prg"]
 .pc=$2000 "Greets"
 .pc=* "greets init"
 greets_init:
     jsr ui_greets
+    jsr reset_sprites
     lda #%11111111
     sta $d015
     lda #$00
@@ -976,6 +1014,417 @@ scr_06:
 col_06: 
 .import c64 "tinn-fe/rsrc/col06_packed.prg"
 
-//* = $cc00
-//.import c64 "tinn-fe/rsrc/realloader.prg"
 
+/*
+-------------------------------------------------------------------------------------
+Draw Your Things
+-------------------------------------------------------------------------------------
+*/
+.segment Draw [outPrg="draw.prg"]
+.pc=$2000 "Draw"
+
+.label PLOT_WIDTH = $10
+.label PLOT_HEIGHT = $10
+.label REAL_WIDTH = $08 //plot width / 2
+.label REAL_HEIGHT = $08 //plot height / 2
+.label PLOTTER_X_OFFSET = ((40-16)/2)-3 //offset of screen from left hand side
+.label PLOTTER_Y_OFFSET = 12
+
+
+.pc=* "draw init"
+draw_init:
+    sei
+    lda #<draw_irq    
+    sta $0314    
+    lda #>draw_irq
+    sta $0315
+    cli
+    jsr draw_init_cursor
+    lda #$00
+    ldx #$00
+!loop:
+    sta SCREEN_BUFFER,x
+    inx
+    bne !loop-
+    jsr draw_buffer_to_screen
+!loop:
+    jsr draw_input_handler
+    ldx #$00
+    ldy #$40
+!delay:
+    dex
+    bne !delay-
+    dey
+    bne !delay-
+    jmp !loop-
+
+
+.pc=* "draw cleanup"
+draw_cleanup:
+    lda #$00
+    sta $d015
+    sei
+    lda #<irq    
+    sta $0314    
+    lda #>irq
+    sta $0315
+    cli 
+    rts
+
+
+.pc=* "draw irq"
+draw_irq:
+    lda #$ff 
+    sta $d019
+    jsr draw_color_cursor
+    ldx CURSOR_X
+    ldy CURSOR_Y
+    jsr draw_position_cursor
+    jmp $ea31  
+
+
+
+draw_init_cursor:
+    lda #%00000001
+    sta $d015
+    lda #$00
+    sta $d017
+    sta $d01c
+    sta $d01d
+    sta $d01b
+    sta $d010
+    lda #$01
+    .for(var i=0;i<8;i++){
+        sta $d027 + i
+    }
+    jsr reset_sprites
+    ldx #$00
+!loop:
+    lda SPRITE_CURSOR,X
+    sta sprite_base,x
+    inx
+    cpx #10
+    bne !loop-
+    ldx #$00
+    ldy #$00
+    jsr draw_position_cursor
+    rts
+
+/*
+x = x position
+y = y position
+a = destroyed
+*/
+draw_position_cursor:
+    lda CURSOR_X_LUT,x
+    sta $d000
+    lda CURSOR_Y_LUT,y
+    sta $d001
+    rts
+
+draw_color_cursor:
+    ldx color_offset: #$00
+    lda CURSOR_COLOR_LUT,x
+    cmp #$ff
+    bne !skip+
+    lda #$01
+    sta color_offset
+    lda CURSOR_COLOR_LUT
+!skip:
+    sta $d027
+    inc color_offset
+    rts
+
+/*
+x = x position
+y = y position
+a = destroyed
+*/
+draw_pixel_buffer:
+    txa
+    clc
+    jmp !calc+
+!loop:
+    adc #PLOT_WIDTH - 1
+    dey
+!calc:
+    cpy #$00
+    bne !loop-
+    tax
+    lda SCREEN_BUFFER,x 
+    eor #$01
+    sta SCREEN_BUFFER,x 
+    rts
+
+/*
+x,y,a = destroyed
+*/
+draw_buffer_to_screen:
+    //top and bottom border
+    ldx #$00
+/*
+!loop:
+    lda #160
+    sta BASE_CHAR_RAM + ((PLOTTER_Y_OFFSET-1) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
+    sta BASE_CHAR_RAM + ((PLOTTER_Y_OFFSET + REAL_HEIGHT) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
+    lda #$0c
+    sta BASE_COLOUR_RAM + ((PLOTTER_Y_OFFSET-1) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
+    sta BASE_COLOUR_RAM + ((PLOTTER_Y_OFFSET + REAL_HEIGHT) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
+    inx
+    cpx #REAL_WIDTH + 2 
+    bne !loop-
+*/
+
+    .for(var i=0;i<REAL_HEIGHT;i++){
+        //side border
+/*
+        lda #160
+        sta BASE_CHAR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1)
+        sta BASE_CHAR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET + REAL_WIDTH)
+        lda #$0c
+        sta BASE_COLOUR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1)
+        sta BASE_COLOUR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET + REAL_WIDTH)
+*/
+        //plot the row
+        lda #PLOT_WIDTH * i * 2
+        sta fds_index //screen buffer index (x)
+        ldy #$00
+!loop:
+        lda #$00
+        sta fds_buffer //reset the quad buffer
+        clc
+        ldx fds_index: #$00
+        lda SCREEN_BUFFER,x
+        lsr
+        rol fds_buffer //set top left bit
+        inx
+        clc
+        lda SCREEN_BUFFER,x
+        lsr
+        rol fds_buffer //set top right bit
+        txa
+        inx //update the index for next iteration in the loop
+        stx fds_index //update the index for next iteration in the loop
+        clc
+        adc #PLOT_WIDTH - 1 //skip ahead a line - 1 in the screen buffer 
+        tax
+        clc
+        lda SCREEN_BUFFER,x 
+        lsr
+        rol fds_buffer //set bottom left bit
+        inx
+        clc
+        lda SCREEN_BUFFER,x
+        lsr
+        rol fds_buffer //set bottom right bit
+        lda fds_buffer: #$00 //quad buffer 
+        tax
+        lda PIXEL_LUT,x
+        sta BASE_CHAR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + PLOTTER_X_OFFSET,y
+        iny
+        cpy #REAL_WIDTH
+        bne !loop-
+    }
+    rts
+
+draw_input_handler:
+    jsr keyboard
+    bcs !skip+
+	cpx #%10000000
+	beq !updown+
+	cpx #%00000100
+	beq !rightleft+
+	cpx #%00000010
+	beq !return+
+    cmp #$20
+    beq !space+
+!skip:
+	rts
+!updown:
+    cpy #%01000000
+    beq !up+
+    cpy #%00010000
+    beq !up+
+    //go down
+    lda CURSOR_Y
+    cmp #PLOT_HEIGHT-1
+    beq !skip+
+    inc CURSOR_Y
+!skip:
+    rts
+!up:
+    //go up
+    lda CURSOR_Y
+    cmp #$00
+    beq !skip+
+    dec CURSOR_Y
+!skip:
+	rts
+!rightleft:
+    cpy #%01000000
+    beq !left+
+    cpy #%00010000
+    beq !left+
+    //go right
+    lda CURSOR_X
+    cmp #PLOT_WIDTH-1
+    beq !skip+
+    inc CURSOR_X
+!skip:
+    rts
+!left:
+    //go left
+    lda CURSOR_X
+    cmp #$00
+    beq !skip+
+    dec CURSOR_X
+!skip:
+	rts
+!return:
+    //send to AI
+    inc $d020
+    jsr nnFProp
+    dec $d020
+    sta $c000
+!skip:
+	rts
+!space:
+    ldx CURSOR_X
+    ldy CURSOR_Y
+    jsr draw_pixel_buffer
+    jsr draw_buffer_to_screen
+!skip:
+	rts
+
+nnFProp:
+    rts
+
+/********************************************
+DATASETS
+*********************************************/
+.pc = * "Datasets"
+PIXEL_LUT:
+.byte 32  //0000 
+// 00
+// 00
+
+.byte 108 //1000
+// 00
+// 01
+
+.byte 123 //0100
+// 00
+// 10
+
+.byte 98  //1100
+// 00
+// 11
+
+.byte 124 //0010
+// 01
+// 00
+
+.byte 225 //1010
+// 01
+// 01
+
+.byte 255 //0110
+// 01
+// 10
+
+.byte 254 //1110
+// 01
+// 11
+
+.byte 126 //0001
+// 10
+// 00
+
+.byte 127 //1001
+// 10
+// 01
+
+.byte 97  //0101
+// 10
+// 10
+
+.byte 252 //1101
+// 10
+// 11
+
+.byte 226 //0011
+// 11
+// 00
+
+.byte 251 //1011
+// 11
+// 01
+
+.byte 236 //0111
+// 11
+// 10
+
+.byte 160 //1111
+// 11
+// 11
+
+.align $100
+.label base_cursor_x = $18 + (PLOTTER_X_OFFSET * 8)
+CURSOR_X_LUT:
+.for (var i=0;i<PLOT_WIDTH+1;i++) {
+    .byte base_cursor_x + ($04 * i)
+}
+
+.label base_cursor_y = $32 + (PLOTTER_Y_OFFSET * 8) 
+CURSOR_Y_LUT:
+.for (var i=0;i<PLOT_HEIGHT+1;i++) {
+    .byte base_cursor_y + ($04 * i)
+}
+
+CURSOR_X:
+    .byte $00
+
+CURSOR_Y:
+    .byte $00
+
+CURSOR_COLOR_LUT:
+    .byte $06, $0b, $06, $0b, $06, $0b, $06, $0b
+    .byte $06, $06, $06, $06, $06, $06, $06, $06
+    .byte $0e, $0e, $0e, $0e, $0e, $0e, $0e, $0e
+    .byte $0e, $0f, $0e, $0f, $0e, $0f, $0e, $0f
+    .byte $03, $0f, $03, $0f, $03, $0f, $03, $0f
+    .byte $0e, $0f, $0e, $0f, $0e, $0f, $0e, $0f
+    .byte $0e, $0e, $0e, $0e, $0e, $0e, $0e, $0e
+    .byte $06, $06, $06, $06, $06, $06, $06, $06
+    .byte $06, $0b, $06, $06, $0b, $06, $0b, $06
+    .byte $ff
+
+//SPRITE CURSOR
+.pc=* "Sprite Cursor"
+SPRITE_CURSOR:
+.byte %11110000, %00000000, %00000000
+.byte %10010000, %00000000, %00000000
+.byte %10010000, %00000000, %00000000
+.byte %11110000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+.byte %00000000, %00000000, %00000000
+
+SCREEN_BUFFER:
+.fill $100, $00

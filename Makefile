@@ -27,6 +27,7 @@ disk.d64: tinn-fe/src/demo.prg ## create complete c64 disk demo
 		c1541 -attach $@ -write tinn-fe/src/demo.prg "start" 
 		c1541 -attach $@ -write tinn-fe/src/greets.prg "01"
 		c1541 -attach $@ -write tinn-fe/src/noter.prg "02"
+		c1541 -attach $@ -write tinn-fe/src/draw.prg "03"
 # 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
 # 		c1541 -attach $@ -write tinn-fe/src/intro.prg "01"
 # 		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
@@ -34,10 +35,10 @@ disk.d64: tinn-fe/src/demo.prg ## create complete c64 disk demo
 # 		c1541 -attach $@ -write tinn-fe/rsrc/brain.prg "04"
 #		c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
 
-clean:
+clean: ## Clean up
 		rm tinn-fe/src/*.sym tinn-fe/src/*.prg *.d64
 
-run:	disk.d64
+run:	disk.d64 ## run the d64
 		x64 disk.d64 >/dev/null
 
 test-layout:
