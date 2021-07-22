@@ -166,6 +166,8 @@ Menu handler functions
 menu_numbers:
     jsr ui_loading
     load($30,$33,$2000)
+    jsr ui_base
+    jsr ui_menu
     jsr ui_draw
     // jsr press_space
     // jsr ui_output
@@ -344,26 +346,12 @@ scr_02:
 col_02: 
 .import c64 "tinn-fe/rsrc/col02_packed.prg"
 
-.pc=* "screen 03"
-scr_03:
-.import c64 "tinn-fe/rsrc/scr03_packed.prg"
-.pc=* "colormap 03"
-col_03: 
-.import c64 "tinn-fe/rsrc/col03_packed.prg"
-
 .pc=* "screen 04"
 scr_04:
 .import c64 "tinn-fe/rsrc/scr04_packed.prg"
 .pc=* "colormap 04"
 col_04: 
 .import c64 "tinn-fe/rsrc/col04_packed.prg"
-
-.pc=* "screen 05"
-scr_05:
-.import c64 "tinn-fe/rsrc/scr05_packed.prg"
-.pc=* "colormap 05"
-col_05: 
-.import c64 "tinn-fe/rsrc/col05_packed.prg"
 
 .pc=* "screen 08"
 scr_08:
@@ -419,13 +407,6 @@ noter_init:
 
 .pc=* "noter keyboard handler loop"
 noter_loop:
-    ldx #$00
-    ldy #$a0
-!loop:
-    inx
-    bne !loop-
-    iny
-    bne !loop-
     jsr keyboard
     bcs noter_loop
     txa
@@ -439,13 +420,22 @@ noter_loop:
     beq noter_loop
     jsr noter_blit_up
     jsr noter_scroll_draw
-    jmp noter_loop
+    jmp !delay+
 !shift:
     txa
     and #%10000100
     beq noter_loop
     jsr noter_blit_down
     jsr noter_scroll_draw
+    // jmp !delay+
+!delay:
+    ldx #$00
+    ldy #$80
+!loop:
+    inx
+    bne !loop-
+    iny
+    bne !loop-
     jmp noter_loop
 !return:
     rts
@@ -1041,6 +1031,7 @@ draw_init:
     cli
     jsr draw_init_cursor
     lda #$00
+    sta quit_flag + 1
     ldx #$00
 !loop:
     sta SCREEN_BUFFER,x
@@ -1049,14 +1040,10 @@ draw_init:
     jsr draw_buffer_to_screen
 !loop:
     jsr draw_input_handler
-    ldx #$00
-    ldy #$40
-!delay:
-    dex
-    bne !delay-
-    dey
-    bne !delay-
-    jmp !loop-
+quit_flag: lda #$00
+    cmp #$00
+    beq !loop-
+    rts
 
 
 .pc=* "draw cleanup"
@@ -1162,29 +1149,8 @@ x,y,a = destroyed
 draw_buffer_to_screen:
     //top and bottom border
     ldx #$00
-/*
-!loop:
-    lda #160
-    sta BASE_CHAR_RAM + ((PLOTTER_Y_OFFSET-1) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
-    sta BASE_CHAR_RAM + ((PLOTTER_Y_OFFSET + REAL_HEIGHT) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
-    lda #$0c
-    sta BASE_COLOUR_RAM + ((PLOTTER_Y_OFFSET-1) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
-    sta BASE_COLOUR_RAM + ((PLOTTER_Y_OFFSET + REAL_HEIGHT) * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1) ,x
-    inx
-    cpx #REAL_WIDTH + 2 
-    bne !loop-
-*/
-
     .for(var i=0;i<REAL_HEIGHT;i++){
         //side border
-/*
-        lda #160
-        sta BASE_CHAR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1)
-        sta BASE_CHAR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET + REAL_WIDTH)
-        lda #$0c
-        sta BASE_COLOUR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET - 1)
-        sta BASE_COLOUR_RAM + (PLOTTER_Y_OFFSET * SCREEN_WIDTH) + (i * SCREEN_WIDTH) + (PLOTTER_X_OFFSET + REAL_WIDTH)
-*/
         //plot the row
         lda #PLOT_WIDTH * i * 2
         sta fds_index //screen buffer index (x)
@@ -1239,7 +1205,9 @@ draw_input_handler:
     cmp #$20
     beq !space+
 !skip:
+    clc
 	rts
+
 !updown:
     cpy #%01000000
     beq !up+
@@ -1251,7 +1219,8 @@ draw_input_handler:
     beq !skip+
     inc CURSOR_Y
 !skip:
-    rts
+	jmp !delay+
+
 !up:
     //go up
     lda CURSOR_Y
@@ -1259,7 +1228,8 @@ draw_input_handler:
     beq !skip+
     dec CURSOR_Y
 !skip:
-	rts
+	jmp !delay+
+
 !rightleft:
     cpy #%01000000
     beq !left+
@@ -1271,7 +1241,8 @@ draw_input_handler:
     beq !skip+
     inc CURSOR_X
 !skip:
-    rts
+    jmp !delay+
+
 !left:
     //go left
     lda CURSOR_X
@@ -1279,24 +1250,46 @@ draw_input_handler:
     beq !skip+
     dec CURSOR_X
 !skip:
-	rts
+	jmp !delay+
+
 !return:
     //send to AI
-    inc $d020
-    jsr nnFProp
-    dec $d020
-    sta $c000
-!skip:
-	rts
+    jmp nnFProp
+
 !space:
     ldx CURSOR_X
     ldy CURSOR_Y
     jsr draw_pixel_buffer
     jsr draw_buffer_to_screen
 !skip:
-	rts
+!delay:
+    ldx #$00
+    ldy #$80
+!delay:
+    dex
+    bne !delay-
+    dey
+    bne !delay-
+    rts
 
 nnFProp:
+    jsr ui_loading
+    ldx #$00
+    ldy #$00
+!loop:
+    inc $d020
+    bne !loop-
+    inx
+    cpx #$00
+    bne !loop-
+    iny 
+    cpy #$00
+    bne !loop-
+    jsr draw_cleanup
+    jsr ui_output
+    jsr press_return
+    lda #$01
+    sta quit_flag + 1
     rts
 
 /********************************************
@@ -1428,3 +1421,17 @@ SPRITE_CURSOR:
 
 SCREEN_BUFFER:
 .fill $100, $00
+
+.pc=* "screen 03"
+scr_03:
+.import c64 "tinn-fe/rsrc/scr03_packed.prg"
+.pc=* "colormap 03"
+col_03: 
+.import c64 "tinn-fe/rsrc/col03_packed.prg"
+
+.pc=* "screen 05"
+scr_05:
+.import c64 "tinn-fe/rsrc/scr05_packed.prg"
+.pc=* "colormap 05"
+col_05: 
+.import c64 "tinn-fe/rsrc/col05_packed.prg"

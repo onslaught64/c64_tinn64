@@ -24,7 +24,8 @@ tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm ## compile c64 demo
 
 disk.d64: tinn-fe/src/demo.prg ## create complete c64 disk demo
 		c1541 -format "defame,2a" d64 $@
-		c1541 -attach $@ -write tinn-fe/src/demo.prg "start" 
+		cd tinn-fe/src;wine ~/Applications/exomizer-3.1.0/win32/exomizer.exe sfx basic -n demo.prg 
+		c1541 -attach $@ -write tinn-fe/src/a.out "start" 
 		c1541 -attach $@ -write tinn-fe/src/greets.prg "01"
 		c1541 -attach $@ -write tinn-fe/src/noter.prg "02"
 		c1541 -attach $@ -write tinn-fe/src/draw.prg "03"
