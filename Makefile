@@ -74,6 +74,8 @@ build_screens: ## make the screen datafiles using petscii packer
 		mv data/col06_packed.prg tinn-fe/rsrc/col06_packed.prg
 		mv data/col07_packed.prg tinn-fe/rsrc/col07_packed.prg
 		mv data/col08_packed.prg tinn-fe/rsrc/col08_packed.prg
+		mv data/col09_packed.prg tinn-fe/rsrc/col09_packed.prg
+		mv data/col10_packed.prg tinn-fe/rsrc/col10_packed.prg
 		mv data/scr01_packed.prg tinn-fe/rsrc/scr01_packed.prg
 		mv data/scr02_packed.prg tinn-fe/rsrc/scr02_packed.prg
 		mv data/scr03_packed.prg tinn-fe/rsrc/scr03_packed.prg
@@ -82,6 +84,8 @@ build_screens: ## make the screen datafiles using petscii packer
 		mv data/scr06_packed.prg tinn-fe/rsrc/scr06_packed.prg
 		mv data/scr07_packed.prg tinn-fe/rsrc/scr07_packed.prg
 		mv data/scr08_packed.prg tinn-fe/rsrc/scr08_packed.prg
+		mv data/scr09_packed.prg tinn-fe/rsrc/scr09_packed.prg
+		mv data/scr10_packed.prg tinn-fe/rsrc/scr10_packed.prg
 		rm data/col01.prg
 		rm data/col02.prg
 		rm data/col03.prg
@@ -90,6 +94,8 @@ build_screens: ## make the screen datafiles using petscii packer
 		rm data/col06.prg
 		rm data/col07.prg
 		rm data/col08.prg
+		rm data/col09.prg
+		rm data/col10.prg
 		rm data/scr01.prg
 		rm data/scr02.prg
 		rm data/scr03.prg
@@ -98,3 +104,5 @@ build_screens: ## make the screen datafiles using petscii packer
 		rm data/scr06.prg
 		rm data/scr07.prg
 		rm data/scr08.prg
+		rm data/scr09.prg
+		rm data/scr10.prg

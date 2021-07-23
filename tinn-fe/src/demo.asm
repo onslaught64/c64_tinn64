@@ -58,6 +58,7 @@ start:
     cli  
 
     jsr ui_base
+    jsr ui_welcome
     jsr press_space
 loop:
     jsr ui_base
@@ -284,6 +285,36 @@ ui_loading:
     jsr depack
     rts
 
+ui_calculating:
+    lda #$66
+    jsr enable_trans
+    ldx #<scr_09
+    ldy #>scr_09
+    lda #$04
+    jsr depack
+    lda #$0f
+    jsr enable_trans
+    ldx #<col_09
+    ldy #>col_09
+    lda #$d8
+    jsr depack
+    rts
+
+ui_welcome:
+    lda #$66
+    jsr enable_trans
+    ldx #<scr_10
+    ldy #>scr_10
+    lda #$04
+    jsr depack
+    lda #$0f
+    jsr enable_trans
+    ldx #<col_10
+    ldy #>col_10
+    lda #$d8
+    jsr depack
+    rts
+
 ui_output:
     jsr disable_trans
     ldx #<scr_05
@@ -359,6 +390,20 @@ scr_08:
 .pc=* "colormap 08"
 col_08: 
 .import c64 "tinn-fe/rsrc/col08_packed.prg"
+
+.pc=* "screen 09"
+scr_09:
+.import c64 "tinn-fe/rsrc/scr09_packed.prg"
+.pc=* "colormap 09"
+col_09: 
+.import c64 "tinn-fe/rsrc/col09_packed.prg"
+
+.pc=* "screen 10"
+scr_10:
+.import c64 "tinn-fe/rsrc/scr10_packed.prg"
+.pc=* "colormap 10"
+col_10: 
+.import c64 "tinn-fe/rsrc/col10_packed.prg"
 
 loader_load:
 .import source "loader_load.asm"
