@@ -286,8 +286,7 @@ ui_loading:
     rts
 
 ui_calculating:
-    lda #$66
-    jsr enable_trans
+    jsr disable_trans
     ldx #<scr_09
     ldy #>scr_09
     lda #$04
@@ -1318,7 +1317,7 @@ draw_input_handler:
     rts
 
 nnFProp:
-    jsr ui_loading
+    jsr ui_calculating
     ldx #$00
     ldy #$00
 !loop:
