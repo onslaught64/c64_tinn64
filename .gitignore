@@ -3,6 +3,7 @@ miniconda
 *.sym
 tinn-fe/src/*.out
 tinn-fe/src/*.prg
-tinn-fe/*.d64
+*.d64
 tinn-fe/src/*.sym
 data/*.sym
+a.out
