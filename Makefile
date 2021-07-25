@@ -54,15 +54,6 @@ test-nn:
 		kick tinn-fe/test/test-nn.asm
 		x64 tinn-fe/test/test-layout.prg
 
-cats:
-		bin/cats.sh ${CONDAENV}
-
-mnist:
-		bin/mnist.sh ${CONDAENV}
-
-quckdraw:
-		bin/quickdraw.sh ${CONDAENV}
-
 build_screens: ## make the screen datafiles using petscii packer
 		kick data/screens.asm
 		kick data/packer.asm
@@ -106,3 +97,6 @@ build_screens: ## make the screen datafiles using petscii packer
 		rm data/scr08.prg
 		rm data/scr09.prg
 		rm data/scr10.prg
+
+train_mnist: ##train mnist
+		bin/run.sh main.py "data/mnist.data" "tinn-fe/rsrc/mnist.asm"

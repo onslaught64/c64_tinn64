@@ -5,17 +5,11 @@ import math
 import random
 import numpy as np
 
-# we make exponent a lookup so we can emulate it precisely in C64
-lut = [256]
-vals = np.linspace(-11, 11, 256)
-for i in range(256):
-    tmp = 1 / (1 + math.exp(vals[i] * -1))
-    lut[i] = tmp  # FixedPointNumber(tmp)
-
-
 """
 Build a new t object given number of inputs (nips), number of hidden neurons for the hidden layer (nhid), and number of outputs (nops).
 """
+
+
 class Tinn(object):
     def __init__(self, nips: int, nhid: int, nops: int):
         self.nips = nips  # number of inputs
@@ -27,82 +21,77 @@ class Tinn(object):
         self.h = [0] * nhid  # hidden layer
         self.x2 = [[random.random() - 0.5 for _ in range(nhid)] for _ in range(nops)]  # hidden to output layer weights
         self.o = [0] * nops  # output layer
+        # we make exponent a lookup so we can emulate it precisely in C64
+        self.lut = []
+        vals = np.linspace(-11, 11, 256)
+        for i in range(256):
+            tmp = 1 / (1 + math.exp(vals[i] * -1))
+            self.lut.append(tmp)  # FixedPointNumber(tmp)
 
+    def xttrain(self, in_: [float], tg: [float], rate: float) -> float:
+        """Trains a t with an input and target output with a learning rate. Returns error rate of the neural network."""
+        self.fprop(in_)
+        self.bprop(in_, tg, rate)
+        return self.toterr(tg, self.o)
 
-def xttrain(t: Tinn, in_: float, tg: float, rate: float) -> float:
-    """Trains a t with an input and target output with a learning rate. Returns error rate of the neural network."""
-    fprop(t, in_)
-    bprop(t, in_, tg, rate)
-    return toterr(tg, t.o)
+    def xtpredict(self, in_: [float]) -> [float]:
+        """Returns an output prediction given an input."""
+        self.fprop(in_)
+        return self.o
 
+    def err(self, a: float, b: float) -> float:
+        """Error function."""
+        return 0.5 * (a - b) * (a - b)
 
-def xtpredict(t: Tinn, in_: float) -> float:
-    """Returns an output prediction given an input."""
-    fprop(t, in_)
-    return t.o
+    def pderr(self, a: float, b: float) -> float:
+        """Partial derivative of error function."""
+        return a - b
 
+    def toterr(self, tg: [float], o: [float]) -> float:
+        """Total error."""
+        return sum([self.err(tg[i], o[i]) for i in range(len(o))])
 
-def err(a: float, b: float) -> float:
-    """Error function."""
-    return 0.5 * (a - b) * (a - b)
+    def act(self, a: float) -> float:
+        """Activation function."""
+        if a > 11:
+            return 1.0
+        if a < -11:
+            return 0.0
+        tmp = a + 11  # make range 0 -> 22 instead of -11 to +11
+        tmp = (tmp / 22) * 256
+        tmp = int(tmp)
+        return self.lut[tmp]
+        # return 1 / (1 + math.exp(-a))
 
+    def pdact(self, a: float) -> float:
+        """Partial derivative of activation function."""
+        return a * (1 - a)
 
-def pderr(a: float, b: float) -> float:
-    """Partial derivative of error function."""
-    return a - b
+    def bprop(self, in_: [float], tg: [float], rate: float) -> None:
+        """Back propagation."""
+        for i in range(self.nhid):
+            s = 0
+            # Calculate total error change with respect to output.
+            for j in range(self.nops):
+                ab = self.pderr(self.o[j], tg[j]) * self.pdact(self.o[j])
+                s += ab * self.x2[j][i]
+                # Correct weights in hidden to output layer.
+                self.x2[j][i] -= rate * ab * self.h[i]
+            # Correct weights in input to hidden layer.
+            for j in range(self.nips):
+                self.x1[i][j] -= rate * s * self.pdact(self.h[i]) * in_[j]
 
-
-def toterr(tg: List[float], o: List[float]) -> float:
-    """Total error."""
-    return sum([err(tg[i], o[i]) for i in range(len(o))])
-
-
-def act(a: float) -> float:
-    """Activation function."""
-    if a > 11:
-        return 1.0
-    if a < -11:
-        return 0.0
-    tmp = a + 11  # make range 0 -> 22 instead of -11 to +11
-    tmp = (tmp / 22) * 256
-    tmp = int(tmp)
-    return lut[tmp]
-
-
-# return 1 / (1 + math.exp(-a))
-
-
-def pdact(a: float) -> float:
-    """Partial derivative of activation function."""
-    return a * (1 - a)
-
-
-def bprop(t: Tinn, in_: List[float], tg: float, rate: float) -> None:
-    """Back propagation."""
-    for i in range(t.nhid):
-        s = 0
-        # Calculate total error change with respect to output.
-        for j in range(t.nops):
-            ab = pderr(t.o[j], tg[j]) * pdact(t.o[j])
-            s += ab * t.x2[j][i]
-            # Correct weights in hidden to output layer.
-            t.x2[j][i] -= rate * ab * t.h[i]
-        # Correct weights in input to hidden layer.
-        for j in range(t.nips):
-            t.x1[i][j] -= rate * s * pdact(t.h[i]) * in_[j]
-
-
-def fprop(t: Tinn, in_: float) -> None:
-    """Forward propagation."""
-    # Calculate hidden layer neuron values.
-    for i in range(t.nhid):
-        s = t.b[0]  # start with bias
-        for j in range(t.nips):
-            s += in_[j] * t.x1[i][j]
-        t.h[i] = act(s)
-    # Calculate output layer neuron values.
-    for i in range(t.nops):
-        s = t.b[1]  # start with bias
-        for j in range(t.nhid):
-            s += t.h[j] * t.x2[i][j]
-        t.o[i] = act(s)
+    def fprop(self, in_: [float]) -> None:
+        """Forward propagation."""
+        # Calculate hidden layer neuron values.
+        for i in range(self.nhid):
+            s = self.b[0]  # start with bias
+            for j in range(self.nips):
+                s += in_[j] * self.x1[i][j]
+            self.h[i] = self.act(s)
+        # Calculate output layer neuron values.
+        for i in range(self.nops):
+            s = self.b[1]  # start with bias
+            for j in range(self.nhid):
+                s += self.h[j] * self.x2[i][j]
+            self.o[i] = self.act(s)

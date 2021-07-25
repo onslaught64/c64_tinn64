@@ -21,5 +21,5 @@ if [[ $ENVS = *"$PROJECT"* ]]; then
 else
     exit 1
 fi;
-export PYTHONPATH=$PYTHONPATH:data:pyTinn/src
-python $@
+export PYTHONPATH=$PYTHONPATH:${PROJECT_ROOT}/data:${PROJECT_ROOT}/pyTinn/src
+python ${PROJECT_ROOT}/pyTinn/src/$@

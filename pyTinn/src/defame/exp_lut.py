@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import math
-from fixedpointnumber import FixedPointNumber 
+from defame.fixedpointnumber import FixedPointNumber 
 import numpy as np
 
 
