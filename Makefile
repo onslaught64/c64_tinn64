@@ -55,48 +55,51 @@ test-nn:
 		x64 tinn-fe/test/test-layout.prg
 
 build_screens: ## make the screen datafiles using petscii packer
-		kick data/screens.asm
-		kick data/packer.asm
-		mv data/col01_packed.prg tinn-fe/rsrc/col01_packed.prg
-		mv data/col02_packed.prg tinn-fe/rsrc/col02_packed.prg
-		mv data/col03_packed.prg tinn-fe/rsrc/col03_packed.prg
-		mv data/col04_packed.prg tinn-fe/rsrc/col04_packed.prg
-		mv data/col05_packed.prg tinn-fe/rsrc/col05_packed.prg
-		mv data/col06_packed.prg tinn-fe/rsrc/col06_packed.prg
-		mv data/col07_packed.prg tinn-fe/rsrc/col07_packed.prg
-		mv data/col08_packed.prg tinn-fe/rsrc/col08_packed.prg
-		mv data/col09_packed.prg tinn-fe/rsrc/col09_packed.prg
-		mv data/col10_packed.prg tinn-fe/rsrc/col10_packed.prg
-		mv data/scr01_packed.prg tinn-fe/rsrc/scr01_packed.prg
-		mv data/scr02_packed.prg tinn-fe/rsrc/scr02_packed.prg
-		mv data/scr03_packed.prg tinn-fe/rsrc/scr03_packed.prg
-		mv data/scr04_packed.prg tinn-fe/rsrc/scr04_packed.prg
-		mv data/scr05_packed.prg tinn-fe/rsrc/scr05_packed.prg
-		mv data/scr06_packed.prg tinn-fe/rsrc/scr06_packed.prg
-		mv data/scr07_packed.prg tinn-fe/rsrc/scr07_packed.prg
-		mv data/scr08_packed.prg tinn-fe/rsrc/scr08_packed.prg
-		mv data/scr09_packed.prg tinn-fe/rsrc/scr09_packed.prg
-		mv data/scr10_packed.prg tinn-fe/rsrc/scr10_packed.prg
-		rm data/col01.prg
-		rm data/col02.prg
-		rm data/col03.prg
-		rm data/col04.prg
-		rm data/col05.prg
-		rm data/col06.prg
-		rm data/col07.prg
-		rm data/col08.prg
-		rm data/col09.prg
-		rm data/col10.prg
-		rm data/scr01.prg
-		rm data/scr02.prg
-		rm data/scr03.prg
-		rm data/scr04.prg
-		rm data/scr05.prg
-		rm data/scr06.prg
-		rm data/scr07.prg
-		rm data/scr08.prg
-		rm data/scr09.prg
-		rm data/scr10.prg
+		kick tinn-fe/ui//screens.asm
+		kick tinn-fe/ui/packer.asm
+		mv tinn-fe/ui/col01_packed.prg tinn-fe/rsrc/col01_packed.prg
+		mv tinn-fe/ui/col02_packed.prg tinn-fe/rsrc/col02_packed.prg
+		mv tinn-fe/ui/col03_packed.prg tinn-fe/rsrc/col03_packed.prg
+		mv tinn-fe/ui/col04_packed.prg tinn-fe/rsrc/col04_packed.prg
+		mv tinn-fe/ui/col05_packed.prg tinn-fe/rsrc/col05_packed.prg
+		mv tinn-fe/ui/col06_packed.prg tinn-fe/rsrc/col06_packed.prg
+		mv tinn-fe/ui/col07_packed.prg tinn-fe/rsrc/col07_packed.prg
+		mv tinn-fe/ui/col08_packed.prg tinn-fe/rsrc/col08_packed.prg
+		mv tinn-fe/ui/col09_packed.prg tinn-fe/rsrc/col09_packed.prg
+		mv tinn-fe/ui/col10_packed.prg tinn-fe/rsrc/col10_packed.prg
+		mv tinn-fe/ui/scr01_packed.prg tinn-fe/rsrc/scr01_packed.prg
+		mv tinn-fe/ui/scr02_packed.prg tinn-fe/rsrc/scr02_packed.prg
+		mv tinn-fe/ui/scr03_packed.prg tinn-fe/rsrc/scr03_packed.prg
+		mv tinn-fe/ui/scr04_packed.prg tinn-fe/rsrc/scr04_packed.prg
+		mv tinn-fe/ui/scr05_packed.prg tinn-fe/rsrc/scr05_packed.prg
+		mv tinn-fe/ui/scr06_packed.prg tinn-fe/rsrc/scr06_packed.prg
+		mv tinn-fe/ui/scr07_packed.prg tinn-fe/rsrc/scr07_packed.prg
+		mv tinn-fe/ui/scr08_packed.prg tinn-fe/rsrc/scr08_packed.prg
+		mv tinn-fe/ui/scr09_packed.prg tinn-fe/rsrc/scr09_packed.prg
+		mv tinn-fe/ui/scr10_packed.prg tinn-fe/rsrc/scr10_packed.prg
+		rm tinn-fe/ui/col01.prg
+		rm tinn-fe/ui/col02.prg
+		rm tinn-fe/ui/col03.prg
+		rm tinn-fe/ui/col04.prg
+		rm tinn-fe/ui/col05.prg
+		rm tinn-fe/ui/col06.prg
+		rm tinn-fe/ui/col07.prg
+		rm tinn-fe/ui/col08.prg
+		rm tinn-fe/ui/col09.prg
+		rm tinn-fe/ui/col10.prg
+		rm tinn-fe/ui/scr01.prg
+		rm tinn-fe/ui/scr02.prg
+		rm tinn-fe/ui/scr03.prg
+		rm tinn-fe/ui/scr04.prg
+		rm tinn-fe/ui/scr05.prg
+		rm tinn-fe/ui/scr06.prg
+		rm tinn-fe/ui/scr07.prg
+		rm tinn-fe/ui/scr08.prg
+		rm tinn-fe/ui/scr09.prg
+		rm tinn-fe/ui/scr10.prg
 
 train_mnist: ##train mnist
 		bin/run.sh main.py "data/mnist.data" "tinn-fe/rsrc/mnist.asm"
+
+convert: ##convert quick draw files into training dataset
+		bin/run.sh convert.py "data" "data"

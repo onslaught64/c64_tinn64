@@ -1,31 +1,14 @@
 import numpy as np
 import sys
-
-
-def update_progress(progress):
-    barLength = 20 # Modify this to change the length of the progress bar
-    status = ""
-    if isinstance(progress, int):
-        progress = float(progress)
-    if not isinstance(progress, float):
-        progress = 0
-        status = "error: progress var must be float\r\n"
-    if progress < 0:
-        progress = 0
-        status = "Halt...\r\n"
-    if progress >= 1:
-        progress = 1
-        status = "Done...\r\n"
-    block = int(round(barLength*progress))
-    text = "\rProgress: [{0}] {1}% {2}".format( "#"*block + "-"*(barLength-block), round(progress*100), status)
-    sys.stdout.write(text)
-    sys.stdout.flush()
+from tqdm import tqdm
+from os import path
 
 
 osz = 16
 sz = 28
 sample = 1.75
 thresh = 1 
+
 
 def fs_image(source):
     output = [[int for i in range(sz)] for j in range(sz)]
@@ -51,6 +34,7 @@ def rsz(source):
         scol = 0
         srow += sample
     return output
+
 
 """
 0 full_numpy_bitmap_cat.npy
@@ -89,19 +73,26 @@ img_idx.append("0 0 0 0 0 0 0 1 0 0") #square
 img_idx.append("0 0 0 0 0 0 0 0 1 0") #sub
 img_idx.append("0 0 0 0 0 0 0 0 0 1") #dunny
 
-output = open("training.data","w")
-for index in range(len(img_lib)):
-    img_set = np.load(img_lib[index])
-    max_count = len(img_set)
-    cur_count = 0
-    print("Processing " + img_lib[index])
-    for ptr in range(max_count):
-        line = ""
-        s = rsz(fs_image(img_set[ptr]))
-        for i in range(osz):
-            for j in range(osz):
-                line = line + str(float(s[i][j])) + " "
-        line = line + img_idx[index] + "\n"
-        output.write(line)
-        update_progress(cur_count/max_count)
-        cur_count += 1
+
+def main():
+    src_path = sys.argv[1]
+    dst_path = sys.argv[2]
+    output = open(path.join(dst_path, "training.data"), "w")
+    for index in range(len(img_lib)):
+        img_set = np.load(path.join(src_path, img_lib[index]))
+        max_count = len(img_set)
+        cur_count = 0
+        print("Processing " + img_lib[index])
+        for ptr in tqdm(range(max_count), leave=False):
+            line = ""
+            s = rsz(fs_image(img_set[ptr]))
+            for i in range(osz):
+                for j in range(osz):
+                    line = line + str(float(s[i][j])) + " "
+            line = line + img_idx[index] + "\n"
+            output.write(line)
+            cur_count += 1
+
+
+if __name__ == "__main__":
+    main()

@@ -7,3 +7,5 @@ tinn-fe/src/*.prg
 tinn-fe/src/*.sym
 data/*.sym
 a.out
+*.npy
+data/training.data
