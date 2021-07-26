@@ -103,3 +103,6 @@ train_mnist: ##train mnist
 
 convert: ##convert quick draw files into training dataset
 		bin/run.sh convert.py "data" "data"
+
+train_qd: ##train quick draw dataset
+		bin/run.sh main.py "data/training.data" "tinn-fe/rsrc/qd.asm"

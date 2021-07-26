@@ -17,14 +17,17 @@ Initially, I used the dataset that Tinn comes with - which is the NIST handwriti
 Q!D!64! allows the user to draw on their favourite 8 bit machine and then it runs the perceptron network on the classic hardware classifying the image. Yes, we have ported modern AI to a C64. 
 
 
-## Step 1: Installation
-install Anaconda 3
-run `setup.sh demo` the first time to create the Anaconda environment for this demo
-type `source activate demo`
-run `setup.sh demo` again... in future, you need only do this once
+## Requirements
+This codebase expects you to be on linux. If you are trying to make this work on Windows, install WSL2 and Ubuntu first.
 
-## Step 2: Download and Convert Training Data
-Download the following files to the `test/` directory and run `python convert.py` 
+There needs to be a command called `kick` which takes the name of the file being assembled as its parameters. This wrapper should call the Kick Assembler jar file ( http://theweb.dk/KickAssembler/Main.html#frontpage )
+
+
+## Step 1: Installation
+Just use `make install`
+
+## Step 2: Download Training Data
+Download the following files to the `test/` directory  
 * https://storage.cloud.google.com/quickdraw_dataset/full/numpy_bitmap/cat.npy
 * https://storage.cloud.google.com/quickdraw_dataset/full/numpy_bitmap/coffee%20cup.npy
 * https://storage.cloud.google.com/quickdraw_dataset/full/numpy_bitmap/computer.npy
@@ -39,45 +42,27 @@ Download the following files to the `test/` directory and run `python convert.py
 If you want to recognize other drawings, download the training set from the Quick! Draw! site here:
 https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap
 
-Finally, open a shell, do the following from the project root:
-```
-cd data
-source activate demo
-python convert.py
-```
+## Step 3: Convert Training Data
+Type `make convert`
 
-## Step 3: Train the Neural Network and Export Trained Neurons and Biases
-Open a shell, do the following from the project root:
-```
-cd pyTinn
-source activate demo
-python train.py
-```
-...and wait...
+## Step 4: Train Your Neural Networks 
+There are two nets to train, one for MNIST (numeral recognition) and one for Quick! Draw! with 10 drawings to classify.
 
-This trains the neural network and configures all weights and biases for the intermediate and output layers of the network and saves them as 24 bit fixed-point values 
+Type `make train_mnist` and then `make train_qd` to train both datasets. These will create the required asm files and put them into the appropriate directory. 
 
-...then do the following for the final data file to be generated...
-```
-python export_exp.py
-```
-This exports a specially crafted set of lookup tables that are used when the input value of the activation function is within range. Basically, a sigmoidal activation function required the exponent of e as follows:
+To finally compile the C64 demo, use `make clean` and then `make disk.d64` 
 
-`activation value = 1 / 1 + e^-input value` which, you can imagine would suck to calculate on a 6502, however the actual range of values that fall inside the curve between 0 and 1 is an input range of 8, so, hey, we calculate the activation function for the input range -4 to +4 in a lookup table instead.
+--------------------------
 
+This python code trains the neural network and configures all weights and biases for the intermediate and output layers of the network and saves them as 24 bit fixed-point values. There is also a specially crafted set of lookup values that are used when the input value of the activation function is within range. Basically, a sigmoidal activation function required the exponent of e as follows: `activation value = 1 / 1 + e^-input value` which, you can imagine would suck to calculate on a 6502, however the actual range of values that fall inside the curve between 0 and 1 is an input range of 8, so, hey, we calculate the activation function for the input range -4 to +4 in a lookup table instead.
 
 Actually, to ensure that the AI is trained using the same activation function, this lookup strategy is also used in the modified pyTinn Python training code for forward propoagation. 
 
 This great article on activation functions helps a lot:
 https://towardsdatascience.com/activation-functions-neural-networks-1cbd9f8d91d6
 
-## Step 4: Build and Run
-Open a shell, do the following from the project root:
-```
-cd tinn-fe
-build
-```
-This expects to have a command called `kick` that will invoke Kick Assembler and also expects Vice to be installed and working using the command `x64`
+
+
 
 ## Extra Developer Notes
 Read the code comments in `tinn-fe/nn.s` to understand how we mapped the activation function in python to one that works on a 6502 using only 24 bit multiplication and addition.
@@ -99,4 +84,5 @@ While I am on the topic of the math library, I had considered making this by usi
 
 
 I have tried to keep links to the code that helped inspire or clarify areas as well as direct usage wherever possible. If you think this is not the case, just let me know and I will update comments accordingly.
+
 
