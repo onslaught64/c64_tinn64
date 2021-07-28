@@ -1,5 +1,3 @@
-.import source "./math.asm"
-
 /*
 Labels and config
 */
@@ -7,35 +5,7 @@ Labels and config
 .label hidden_layer_size = 32
 .label output_layer_size = 10
 
-/*
-Returns A winning index (0->A)
 
-0 full_numpy_bitmap_cat.npy
-1 full_numpy_bitmap_coffee cup.npy
-2 full_numpy_bitmap_computer.npy
-3 full_numpy_bitmap_police car.npy
-4 full_numpy_bitmap_rainbow.npy
-5 full_numpy_bitmap_underwear.npy
-6 full_numpy_bitmap_snake.npy
-7 full_numpy_bitmap_square.npy
-8 full_numpy_bitmap_submarine.npy
-9 full_numpy_bitmap_toilet.npy
-*/
-
-//this fixes a bug in the train.py exporter
-nnLoadBReversed:
-    stx nnlb_ptr
-    sty nnlb_ptr + 1
-    ldx #$00
-	ldy #$02
-!loop:
-    lda nnlb_ptr: $ffff,x
-    sta b1,y
-	dey 
-    inx
-    cpx #$03
-    bne !loop-
-    rts
 
 
 /*
@@ -55,8 +25,11 @@ nnLoadBReversed:
             self.o[i] = self.act(s)
 */
 
-nnFProp:
-//set up biases in the hidden layer first
+nnFPropMain:
+/*
+initialise biases
+*/
+
 	ldx #$00
 	ldy #$00
 !loop:
@@ -71,6 +44,7 @@ nnFProp:
 	inx
 	cpx #hidden_layer_size * 3
 	bne !loop-
+
 
 //reset loop values below
 	jsr nnResetX1
@@ -352,23 +326,7 @@ output_layer:
 	.byte $00, $00, $00 //24 bit fixed point	
 }
 
-/*this should be in fe.s but, well, we need it here*/
-.align $100
-.pc = * "SCREEN BUFFER (Input layer feed)"
-SCREEN_BUFFER:
-.for (var i=0;i<$100;i++) {
-    .byte $00
-}
-
-/*
-Load up all the generated data
-*/
-.pc = * "Biases"
-.import source "../../output/biases.asm"
-.align $100
-.pc = * "EXP Lut"
-.import source "../../output/exp_lut.asm"
-.pc = * "X1"
-.import source "../../output/t_x1.asm"
-.pc = * "X2"
-.import source "../../output/t_x2.asm"
+.segment Noter [outPrg="mnist.prg"]
+.pc = *
+nn_include:
+.import source "tinn-fe/rsrc/mnist.asm"

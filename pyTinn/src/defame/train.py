@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from typing import IO
+
+from defame.abstract_renderer import AbstractRenderer
 from defame.tinn import Tinn
 from defame.fixedpointnumber import FixedPointNumber
 from defame.data import Data
@@ -6,8 +9,8 @@ from tqdm import tqdm
 from os import path
 
 
-class Train(object):
-	def __init__(self, filename: str, destination: str):
+class Train(AbstractRenderer):
+	def __init__(self, filename: str):
 		self.nips = 256
 		self.nhid = 32
 		self.nops = 10
@@ -18,32 +21,10 @@ class Train(object):
 		self.data = Data(filename, self.nips, self.nops)
 		print("model init")
 		self.t = Tinn(self.nips, self.nhid, self.nops)
-		self.destination = destination
 
 	def __do_output(self, o, value: float):
 		fp = FixedPointNumber(value)
 		o.write(str(fp) + "\n")
-
-	def export(self):
-		output = open(self.destination, "w")
-		output.write("// Biases: \n")
-		output.write(".align $100 \n")
-		output.write("t_biases: \n")
-		for i in self.t.b:
-			self.__do_output(output, i)
-		output.write("// Input to Hidden: \n")
-		output.write(".align $100 \n")
-		output.write("t_x1: \n")
-		for i in self.t.x1:
-			for j in i:
-				self.__do_output(output, j)
-		output.write("// Hidden to Output: \n")
-		output.write(".align $100 \n")
-		output.write("t_x2: \n")
-		for i in self.t.x2:
-			for j in i:
-				self.__do_output(output, j)
-		output.close()
 
 	def train(self):
 		for _ in range(self.training_passes):
@@ -77,3 +58,28 @@ class Train(object):
 					pmax = pd[j]
 					pidx = j
 			print("PASS " + str(i) + " VALUE:" + str(correct) + " PREDICTION:" + str(pidx) + ("FAIL!" if pidx != correct else ""))
+
+	def render_labels(self, file_handle: IO):
+		file_handle.write("t_weights_hidden:\n")
+		file_handle.write(".byte <t_x1, >t_x1\n")
+		file_handle.write("t_weights_output:\n")
+		file_handle.write(".byte <t_x2, >t_x2\n")
+
+	def render(self, file_handle: IO):
+		file_handle.write("// Biases: \n")
+		file_handle.write(".align $100 \n")
+		file_handle.write("t_biases: \n")
+		for i in self.t.b:
+			self.__do_output(file_handle, i)
+		file_handle.write("// Input to Hidden: \n")
+		file_handle.write(".align $100 \n")
+		file_handle.write("t_x1: \n")
+		for i in self.t.x1:
+			for j in i:
+				self.__do_output(file_handle, j)
+		file_handle.write("// Hidden to Output: \n")
+		file_handle.write(".align $100 \n")
+		file_handle.write("t_x2: \n")
+		for i in self.t.x2:
+			for j in i:
+				self.__do_output(file_handle, j)

@@ -7,7 +7,7 @@ SHELL := /bin/bash
 help: ## This help
 	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
-all: disk.d64
+all: clean disk.d64 ## clean up and make the disk image
 
 install: ## Install dependencies (miniconda) and create conda environment
 		bin/miniconda.sh
@@ -15,9 +15,6 @@ install: ## Install dependencies (miniconda) and create conda environment
 
 test: ## Run Python unit tests
 		bin/run.sh nose2 test
-
-tinn-fe/src/fe.prg: tinn-fe/src/fe.asm
-		kick $<
 
 tinn-fe/src/demo.prg:  tinn-fe/src/demo.asm ## compile c64 demo
 		kick $<

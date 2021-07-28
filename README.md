@@ -50,9 +50,17 @@ There are two nets to train, one for MNIST (numeral recognition) and one for Qui
 
 Type `make train_mnist` and then `make train_qd` to train both datasets. These will create the required asm files and put them into the appropriate directory. 
 
+## Step 5: Build the C64 Demo
 To finally compile the C64 demo, use `make clean` and then `make disk.d64` 
 
+
 --------------------------
+
+
+
+
+## Extra Developer Notes
+Read the code comments in `tinn-fe/nn.s` to understand how we mapped the activation function in python to one that works on a 6502 using only 24 bit multiplication and addition.
 
 This python code trains the neural network and configures all weights and biases for the intermediate and output layers of the network and saves them as 24 bit fixed-point values. There is also a specially crafted set of lookup values that are used when the input value of the activation function is within range. Basically, a sigmoidal activation function required the exponent of e as follows: `activation value = 1 / 1 + e^-input value` which, you can imagine would suck to calculate on a 6502, however the actual range of values that fall inside the curve between 0 and 1 is an input range of 8, so, hey, we calculate the activation function for the input range -4 to +4 in a lookup table instead.
 
@@ -60,12 +68,6 @@ Actually, to ensure that the AI is trained using the same activation function, t
 
 This great article on activation functions helps a lot:
 https://towardsdatascience.com/activation-functions-neural-networks-1cbd9f8d91d6
-
-
-
-
-## Extra Developer Notes
-Read the code comments in `tinn-fe/nn.s` to understand how we mapped the activation function in python to one that works on a 6502 using only 24 bit multiplication and addition.
 
 
 The following files are for unit testing the `math.s` library:

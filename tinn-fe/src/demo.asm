@@ -1479,3 +1479,8 @@ scr_05:
 .pc=* "colormap 05"
 col_05: 
 .import c64 "tinn-fe/rsrc/col05_packed.prg"
+
+.pc=* "math"
+.import source "math.asm"
+.pc=* "nn"
+.import source "nn2.asm"
