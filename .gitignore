@@ -9,3 +9,5 @@ data/*.sym
 a.out
 *.npy
 data/training.data
+pyTinn/src/defame/__pycache__/*
+
