@@ -1,14 +1,6 @@
 # Quick! Draw! 64!
 
-
-The AI in this project is based on pyTinn
-https://github.com/nvalis/pyTinn
-
-
-
-which is a port of the amazing Tinn
-https://github.com/glouw/tinn
-
+[Development Journal](journal.md)
 
 I was inspired that the actual trained neural net is very compact. How could Tinn be adapted to work on a smaller computer? Well, I have modified the pyTinn code to export 24bit fixed point data and use a lookup based activation function instead of calculating the exponent of e every time. Thus, Q!D!64! was born. 
 
@@ -17,14 +9,33 @@ Initially, I used the dataset that Tinn comes with - which is the NIST handwriti
 Q!D!64! allows the user to draw on their favourite 8 bit machine and then it runs the perceptron network on the classic hardware classifying the image. Yes, we have ported modern AI to a C64. 
 
 
-## Requirements
-This codebase expects you to be on linux. If you are trying to make this work on Windows, install WSL2 and Ubuntu first.
+The AI in this project is based on pyTinn
+https://github.com/nvalis/pyTinn
 
-There needs to be a command called `kick` which takes the name of the file being assembled as its parameters. This wrapper should call the Kick Assembler jar file ( http://theweb.dk/KickAssembler/Main.html#frontpage )
+...which is a port of the amazing Tinn
+https://github.com/glouw/tinn
+
+
+## Requirements
+This codebase expects you to be on Linux - I built everything on Debian, but should work on anything. If you are trying to make this work on Windows, install WSL2 and Ubuntu first and get yourself sorted with a Linux-based development environment.
+
+There needs to be a command called `kick` which takes the name of the file being assembled as its parameters. This wrapper should call the Kick Assembler jar file ( http://theweb.dk/KickAssembler/Main.html#frontpage ) ...below an example shell script I use for this purpose. The idea is that I don't want to have paths from my environment dirtying up the build scripts. So if you get `kick` in your path - everything works.
+
+```
+#!/bin/bash
+java -jar ~/Applications/KickAss/KickAss.jar $@
+```
+
+There also needs to be Vice executables installed on the path as I use `x64` and `c1541` from the Vice distribution and I assume they are on the path.
+
+Finally, I am currently hardcoding a call to Exomizer in the Makefile. I will clean this up so I follow my own advice. Yeah, I know...
 
 
 ## Step 1: Installation
 Just use `make install`
+
+This will download Miniconda (Python virtual environment) and set it all up for you so the Python code will run with any dependencies satisfied.
+
 
 ## Step 2: Download Training Data
 Download the following files to the `test/` directory  
@@ -42,13 +53,19 @@ Download the following files to the `test/` directory
 If you want to recognize other drawings, download the training set from the Quick! Draw! site here:
 https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap
 
+This step kind of sucks, I would have liked to automate this into the build process, but you need ot have Google account to access the files. So - that is in the 'too hard' basket right now.
+
 ## Step 3: Convert Training Data
 Type `make convert`
+
+This converts Numpy bitmap packs into rows that the `train.py` can parse and feed to the PyTinn algorithm. This takes a while.
 
 ## Step 4: Train Your Neural Networks 
 There are two nets to train, one for MNIST (numeral recognition) and one for Quick! Draw! with 10 drawings to classify.
 
 Type `make train_mnist` and then `make train_qd` to train both datasets. These will create the required asm files and put them into the appropriate directory. 
+
+This can take quite some time even on a powerful computer.
 
 ## Step 5: Build the C64 Demo
 To finally compile the C64 demo, use `make clean` and then `make disk.d64` 
@@ -87,4 +104,4 @@ While I am on the topic of the math library, I had considered making this by usi
 
 I have tried to keep links to the code that helped inspire or clarify areas as well as direct usage wherever possible. If you think this is not the case, just let me know and I will update comments accordingly.
 
-
+For more notes, see the [journal](journal.md)
