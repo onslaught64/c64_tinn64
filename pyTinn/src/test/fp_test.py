@@ -39,7 +39,14 @@ fp(0.27585)
 fp(-7.9 * 0.27585)
 
 
-
+print("Exp LUT range limits")
+fp(-11)
+fp(11)
+fp(16)
+fp(31.99999)
+fp(-31.99999)
+fp(22)
+fp(0)
 
 # print("Testing exponent segments (256 byte range)")
 # for i in range(256):

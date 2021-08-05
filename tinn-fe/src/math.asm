@@ -13,8 +13,183 @@
 .var out4 = $ab
 .var out5 = $ac
 .var out6 = $ad
+/*
+Processing Marcos
+*/
+.macro push_direct_a(addr){
+    lda addr
+    sta inal
+    lda addr + 1 
+    sta inam
+    lda addr + 2
+    sta inah
+    lda #$00
+    sta ina4
+    sta ina5
+    sta ina6
+}
+
+.macro push_direct_b(addr){
+    lda addr
+    sta inbl
+    lda addr + 1 
+    sta inbm
+    lda addr + 2
+    sta inbh
+}
+
+.macro pop_direct(addr){
+    lda outl
+    sta addr
+    lda outm
+    sta addr + 1
+    lda outh
+    sta addr + 2
+}
+
+.macro push_zp_a(addr){
+    lda (addr),y
+    sta inal
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+    lda (addr),y
+    sta inam
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+    lda (addr),y
+    sta inah
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+    lda #$00
+    sta ina4
+    sta ina5
+    sta ina6
+}
+
+.macro push_zp_b(addr){
+    lda (addr),y
+    sta inbl
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+    lda (addr),y
+    sta inbm
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+    lda (addr),y
+    sta inbh
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+}
+
+.macro pop_zp(addr){
+    lda outl
+    sta (addr),y
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+    lda outm
+    sta (addr),y
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+    lda outh
+    sta (addr),y
+    inc addr
+    bne !+
+    inc addr + 1
+!:
+}
+//--------------------
+/*
+Is negative
+*/
+neg_byte:
+.byte %10000000
 
 
+
+/*
+Feeds back the result as an input
+*/
+feedback:
+    lda outl
+    sta inal
+    lda outm
+    sta inam
+    lda outh
+    sta inah
+    lda #$00
+    sta ina4
+    sta ina5
+    sta ina6
+    sta outl
+    sta outm
+    sta outh
+    sta out4
+    sta out5
+    sta out6
+    rts
+//--------------------
+clear_all:
+    lda #$00
+    sta inal
+    sta inam
+    sta inah
+    sta ina4
+    sta ina5
+    sta ina6
+    sta inbl
+    sta inbm
+    sta inbh
+    sta outl 
+    sta outm
+    sta outh
+    sta out4
+    sta out5
+    sta out6
+    rts
+//--------------------
+clear_a:
+    lda #$00
+    sta inal
+    sta inam
+    sta inah
+    sta ina4
+    sta ina5
+    sta ina6
+    rts
+//--------------------
+clear_b:
+    lda #$00
+    sta inbl
+    sta inbm
+    sta inbh
+    rts
+//--------------------
+clear_out:
+    lda #$00
+    sta outl 
+    sta outm
+    sta outh
+    sta out4
+    sta out5
+    sta out6
+    rts
+//--------------------
 nega:
     lda inal
     eor #$ff
@@ -28,7 +203,7 @@ nega:
     eor #$ff
     sta inah
     rts
-
+//--------------------
 negb:
     lda inbl
     eor #$ff
@@ -42,7 +217,7 @@ negb:
     eor #$ff
     sta inbh
     rts
-
+//--------------------
 nego:
     lda outl
     eor #$ff
@@ -56,7 +231,7 @@ nego:
     eor #$ff
     sta outh
     rts
-
+//--------------------
 add:
     clc
     lda inal
@@ -69,7 +244,7 @@ add:
     adc inbh
     sta outh
     rts
-
+//--------------------
 sub:
     jsr negb
     clc
@@ -83,7 +258,7 @@ sub:
     adc inah
     sta outh
     rts
-
+//--------------------
 mul:
     ldy #$00
 	lda inah //high byte (sign)
@@ -147,8 +322,12 @@ align:
 	jsr nego // then product := -product
 !skip:
     rts
+    
 
 
+//--------------------
+// Output functions
+//--------------------
 printbits:
     lda outh //h
     jsr hexout
@@ -156,7 +335,7 @@ printbits:
     jsr hexout
     lda outl //l
     jmp hexout
-
+//--------------------
 hexout:
     clc
     pha //       (save the byte)
@@ -168,7 +347,7 @@ hexout:
     pla
     and #$0f  
     jmp hexdig 
-
+//--------------------
 hexdig: 
     cmp #$0a //(alphabetic digit?)
     bcc !skip+ //  (no, skip next part)
@@ -176,7 +355,7 @@ hexdig:
 !skip:
     adc #$30 //(convert to ASCII)
     jmp $ffd2 //(print it)
-
+//--------------------
 .macro print(string){
     ldx #$00
 !loop:

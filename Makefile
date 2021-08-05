@@ -103,3 +103,6 @@ convert: ##convert quick draw files into training dataset
 
 train_qd: ##train quick draw dataset
 		bin/run.sh main.py "data/training.data" "tinn-fe/rsrc/qd.asm"
+
+test_fp: ## test fixed point
+		bin/run.sh test/fp_test.py

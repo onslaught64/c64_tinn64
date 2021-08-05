@@ -5,6 +5,8 @@ import math
 import random
 import numpy as np
 
+from defame.exp_lut import ExpLut
+
 """
 Build a new t object given number of inputs (nips), number of hidden neurons for the hidden layer (nhid), and number of outputs (nops).
 """
@@ -22,11 +24,7 @@ class Tinn(object):
         self.x2 = [[random.random() - 0.5 for _ in range(nhid)] for _ in range(nops)]  # hidden to output layer weights
         self.o = [0] * nops  # output layer
         # we make exponent a lookup so we can emulate it precisely in C64
-        self.lut = []
-        vals = np.linspace(-11, 11, 256)
-        for i in range(256):
-            tmp = 1 / (1 + math.exp(vals[i] * -1))
-            self.lut.append(tmp)  # FixedPointNumber(tmp)
+        self.lut: ExpLut = ExpLut()
 
     def xttrain(self, in_: [float], tg: [float], rate: float) -> float:
         """Trains a t with an input and target output with a learning rate. Returns error rate of the neural network."""
@@ -53,14 +51,7 @@ class Tinn(object):
 
     def act(self, a: float) -> float:
         """Activation function."""
-        if a > 11:
-            return 1.0
-        if a < -11:
-            return 0.0
-        tmp = a + 11  # make range 0 -> 22 instead of -11 to +11
-        tmp = (tmp / 22) * 256
-        tmp = int(tmp)
-        return self.lut[tmp]
+        return self.lut.eval(a)
         # return 1 / (1 + math.exp(-a))
 
     def pdact(self, a: float) -> float:

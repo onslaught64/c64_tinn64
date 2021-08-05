@@ -7,7 +7,7 @@ that outputs lo-med-hi byte for Kick Assembler
 Zig/Defame
 """
 
-msb_range = 32
+msb_range = 64
 bit_depth = 0x1000000
 
 

@@ -5,8 +5,73 @@ Labels and config
 .label hidden_layer_size = 32
 .label output_layer_size = 10
 
+.var inl = $b6
+,var inh = $b7
 
+.var ptrl = $b0
+.var ptrh = $b1
 
+.var datal = $ae
+.var datah = $af
+
+.var tmpl = $b2
+.var tmpm = $b3
+.var tmph = $b4
+
+.var winl = $b8
+.var winm = $b9
+.var winh = $ba
+.var wini = $bb //index
+
+.var neuron_counter = $b2
+
+push_tmp:
+	lda outl
+	sta tmpl
+	lda outm
+	sta tmpm
+	lda outh
+	sta tmph
+	rts
+
+pop_tmp:
+	lda tmpl
+	sta inbl
+	lda tmpm
+	sta inbm
+	lda tmph
+	sta inbh
+	rts
+
+output_to_tmp:
+	lda (ptrl),y
+	sta tmpl
+	inc ptrl
+	bne !+
+	inc ptrh
+!:
+	lda (ptrl),y
+	sta tmpm
+	inc ptrl
+	bne !+
+	inc ptrh
+!:
+	lda (ptrl),y
+	sta tmph
+	inc ptrl
+	bne !+
+	inc ptrh
+!:
+rts
+
+tmp_to_winner:
+	lda tmpl
+	sta winl
+	lda tmpm
+	sta winm
+	lda tmph
+	sta tmph
+	rts
 
 /*
  def fprop(self, in_: [float]) -> None:
@@ -24,293 +89,203 @@ Labels and config
                 s += self.h[j] * self.x2[i][j]
             self.o[i] = self.act(s)
 */
-
-nnFPropMain:
-/*
-initialise biases
-*/
-
+nn_forward_propagate:
 	ldx #$00
 	ldy #$00
-!loop:
+	// init the zp
+	lda t_weights_hidden
+	sta datal
+	lda t_weights_hidden + 1
+	sta datah
+	lda #<hidden_layer
+	sta prtl
+	lda #>hidden_layer
+	sta ptrh
+	lda #$00
+	sta neuron_counter
+loop_hidden_layer:
+	jsr clear_all
+	/*
+	this seems strange, we put the bias into
+	the result of the mathlib - because we use result
+	feedback as part of the processing loop. so
+	by default, the first loop will add the bias
+	*/
 	lda t_biases
-	sta hidden_layer,x
-	inx
+	sta outl
 	lda t_biases + 1
-	sta hidden_layer,x
-	inx
+	sta outm
 	lda t_biases + 2
-	sta hidden_layer,x
-	inx
-	cpx #hidden_layer_size * 3
-	bne !loop-
-
-
-//reset loop values below
-	jsr nnResetX1
-
-//multiply each input on a hidden layer node
-.for(var i=0; i<hidden_layer_size; i++){
-	lda #$00
-	sta _nip
-!loop:
-	ldx _nip: #$00
+	sta outh
+loop_hidden_perceptron:
 	lda SCREEN_BUFFER,x
-	sta a3
-	lda #$00
-	sta a2
-	sta a1
-	jsr nnReadX1
-	jsr nnLoadBReversed
-	jsr mMul
-	mv_mul_a()
-	ldx #< hidden_layer + (i*3)
-	ldy #> hidden_layer + (i*3)
-	jsr nnLoadBReversed
-	jsr mAdd //add to existing hidden layer value
-	mv_result(hidden_layer + (i*3))
-	inc _nip
-	bne !loop-
-	//activation function here
-	lda hidden_layer + (i*3) +2
-	ldy hidden_layer + (i*3) +1
-	ldx hidden_layer + (i*3)
-	jsr nnActivation
-	mv_result(hidden_layer + (i*3))
-}
-//set up biases in the output layer first
+	beq !skip+
+	// process the weights for this input
+	jsr feedback
+	push_zp_b(datal)
+	jsr add
+	jmp !finalise+
+!skip:
+	// skip over the weights for this input
+	inc datal
+	bne !+
+	inc datah
+!:
+	inc datal
+	bne !+
+	inc datah
+!:
+	inc datal
+	bne !finalise+
+	inc datah
+!finalise+
+	inx
+	cpx #$00
+	bne loop_hidden_perceptron
+	jsr activation_function
+	pop_zp(ptr)
+	dec neuron_counter
+	bne loop_hidden_layer
+/*
+Hidden layer to output layer
+*/
 	ldx #$00
 	ldy #$00
-!loop:
+	// init the zp
+	lda t_weights_output
+	sta datal
+	lda t_weights_output + 1
+	sta datah
+	lda #<output_layer
+	sta prtl
+	lda #>output_layer
+	sta ptrh
+	lda #<hidden_layer
+	sta inl
+	lda #>hidden_layer
+	sta inh
+	lda #output_layer_size
+	sta neuron_counter
+loop_output_layer:
+	jsr clear_all
+	/*
+	this seems strange, we put the bias into
+	the result of the mathlib - because we use result
+	feedback as part of the processing loop. so
+	by default, the first loop will add the bias
+	*/
 	lda t_biases + 3
-	sta output_layer,x
-	inx
+	sta tmpl
 	lda t_biases + 4
-	sta output_layer,x
-	inx
+	sta tmpm
 	lda t_biases + 5
-	sta output_layer,x
+	sta tmph
+loop_output_perceptron:
+	push_zp_a(inl)
+	push_zp_b(datal)
+	jsr mul
+	jsr feedback
+	jsr pop_tmp
+	jsr add
+	jsr push_tmp
 	inx
-	cpx #output_layer_size * 3
-	bne !loop-
-//reset output layer call
-	jsr nnResetX2
-
-//multiply each input on a output layer node
-.for(var i=0; i<output_layer_size; i++){
-	lda #$00
-	sta _nhid
-!loop:
-	ldx _nhid: #$00
-	lda hidden_layer,x
-	sta a1
-	inx
-	lda hidden_layer,x
-	sta a2
-	inx
-	lda hidden_layer,x
-	sta a3
-	jsr nnReadX2
-	jsr nnLoadBReversed
-	jsr mMul
-	mv_mul_a()
-	ldx #< output_layer + (i*3)
-	ldy #> output_layer + (i*3)
-	jsr nnLoadBReversed
-	jsr mAdd //add to existing hidden layer value
-	mv_result(output_layer + (i*3))
-	inc _nhid
-	inc _nhid
-	inc _nhid
-	lda _nhid
-	cmp #(hidden_layer_size * 3)
-	bne !loop-
-	lda output_layer + (i*3) + 2
-	ldy output_layer + (i*3) + 1
-	ldx output_layer + (i*3)
-	jsr nnActivation
-	mv_result(output_layer + (i*3))
-}
-	jsr nnWinner //go find the winner and return it in the A
-	rts
+	cpx hidden_layer_size
+	bne loop_output_perceptron
+	lda tmpl
+	sta outl
+	lda tmpm
+	sta outm
+	lda tmph
+	sta outh
+	jsr activation_function
+	pop_zp(ptr)
+	dec neuron_counter
+	bne loop_output_layer
 
 /*
-get next t_x1 value
-x is lo
-y is hi
+Determine the winner
 */
-nnReadX1:
-	ldx _hid_lo: #< t_x1
-	ldy _hid_hi: #> t_x1
-	clc
-	inc _hid_lo
-	bne !skip+
-	inc _hid_hi
-!skip:
-	rts
-
-/*
-Reset X1 reader
-*/
-nnResetX1:
-	lda #< t_x1
-	sta _hid_lo
-	lda #> t_x1
-	sta _hid_hi
-	rts
-
-/*
-get next t_x1 value
-x is lo
-y is hi
-*/
-nnReadX2:
-	ldx _out_lo: #< t_x2
-	ldy _out_hi: #> t_x2
-	clc
-	inc _out_lo
-	bne !skip+
-	inc _out_hi
-!skip:
-	rts
-
-/*
-Reset X1 reader
-*/
-nnResetX2:
-	lda #< t_x2
-	sta _out_lo
-	lda #> t_x2
-	sta _out_hi
-	rts
-
-
-/*
-def act(a: float) -> float:
-	"""Activation function."""
-	if a > 4:
-		return 1.0
-	if a < -4: 
-		return 0.0
-	tmp = int(((a + 4) / 8) * 256)
-	return exp_lut[tmp]
-	# return 1 / (1 + math.exp(-a))
-
-a = value hi byte
-y = value mid byte
-x = value lo byte
-
-returns result using math
-*/
-nnActivation:
-	sta a3
-	sty a2
-	stx a1
-	lda #$04 // +4 to shift the input value into positive range so, anything between 0 and 8 shoudl
-			// be used as lookup of the EXP function, otherwise, just max or min the return value
-	sta b3
-	lda #$00
-	sta b2
-	sta b1
-	jsr mAdd
-	mv_add_a()
-	lda #$00
-	sta b1
-	sta b2
-	sta b3
-	jsr mCmp
-	bpl !skip+
-	//a < -4
-	lda #$00
+	lda #<output_layer
+	sta ptrl
+	lda #>output_layer
+	sta ptrh
+	
 	ldx #$00
 	ldy #$00
+	jsr output_to_tmp
+	jsr tmp_to_winner
+	stx wini
+win_loop:
+	jsr output_to_tmp
+	lda winh
+	cmp tmph
+	bcs win_next
+	lda winm
+	cmp tmpm
+	bcs win_next
+	lda winl
+	cmp tmpl
+	bcs win_next
+	jsr tmp_to_winner
+	stx wini
+win_next:
+	inx
+	cpx #output_layer_size
+	bne win_loop
 	rts
-!skip:
-	lda #$08
-	sta b3
-	jsr mCmp
-	bmi !skip+
-	// a > 4
-	lda #$01
-	ldx #$00
-	ldy #$00
-	rts
-!skip: 
-	//shift up the index for the exponent lookup ( /8 * 256 is the same as <<<<)
-	asl r1
-	rol r2
-	rol r3 //< 
-	asl r1
-	rol r2
-	rol r3 //<
-	asl r1
-	rol r2
-	rol r3 //<
-	asl r1
-	rol r2
-	rol r3 //<
-	asl r1
-	rol r2
-	rol r3 //<
-	//lookup exp using r3 (we don't care about the fraction, we just want the int like in the python code)
-	lda r3
-	tax
 
-	//due to the index read nature of this table, we made it 3 separate luts 
+
+
+/*
+self.__lut = []
+vals = np.linspace(-11, 11, 256)
+for i in range(256):
+	tmp = 1 / (1 + math.exp(vals[i] * -1))
+	self.__lut.append(FixedPointNumber(tmp))
+Solve for this:
+Exp LUT range limits
+.byte $00,$00,$a8// FLOAT: -11		 SCALAR:-5767168		 HEX:$a8$00$00
+.byte $00,$00,$58// FLOAT: 11		 SCALAR:05767168		 HEX:$58$00$00
+
+*/
+_return_zero:
+	jsr clear_out //0.0
+	rts
+_return_one:
+	jsr clear_out
+	lda #$04 //1.0
+	sta outh
+	rts
+activation_function:
+	jsr feedback
+	jsr clear_b
+	lda #$2c
+	sta inbh
+	jsr add
+
+	lda outh
+	bit neg_byte
+	beq _return_zero
+	cmp #$58
+	bcs _return_one
+_return_sigmoid:
+	clc
+	.for(var i=0;i<7;i++){
+		lsr outh
+		ror outm
+		//ror outl
+	}
+	ldx outm
 	lda exp_lut_lo,x
-	sta r1
-	lda exp_lut_med,x
-	sta r2
+	sta outl
+	lda exp_lut_mid,x
+	sta outm
 	lda exp_lut_hi,x
-	sta r3
+	sta outh
 	rts
 
-_winner:
-	.byte $00, $00, $00
-_winnerIndex:
-	.byte $00
 
-/*
-returns winner in A
-*/
-nnWinner:
-	lda #$00
-	ldx #$00
-	ldy #$00
-	sta _winner
-	sta _winner + 1
-	sta _winner + 2
-	sta _winnerIndex
-!loop:
-	clc
-	lda output_layer+2,x
-	cmp _winner+2
-	bcc !notWinner+ //a < m hi
-	lda output_layer+1,x
-	cmp _winner+1
-	bcc !notWinner+  //a < m med
-	lda output_layer,x
-	cmp _winner
-	bcc !notWinner+ //a < m lo
 
-!winner:
-	lda output_layer+2,x
-	sta _winner+2
-	lda output_layer+1,x
-	sta _winner+1
-	lda output_layer,x
-	sta _winner
-	sty _winnerIndex
-
-!notWinner:
-	inx
-	inx
-	inx //skip ahead 3 bytes for 24bit
-	iny
-	cpx #output_layer_size * 3
-	bne !loop-
-	lda _winnerIndex
-	rts
 
 .align $100
 .pc = * "Hidden Layer"
