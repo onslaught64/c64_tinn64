@@ -1484,3 +1484,8 @@ col_05:
 .import source "math.asm"
 .pc=* "nn"
 .import source "nn2.asm"
+
+.segment Noter [outPrg="mnist.prg"]
+.pc=* "MNIST"
+nn_include:
+.import source "tinn-fe/rsrc/mnist.asm"

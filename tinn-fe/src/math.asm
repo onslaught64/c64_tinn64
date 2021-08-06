@@ -121,7 +121,7 @@ neg_byte:
 .byte %10000000
 
 
-
+//--------------------
 /*
 Feeds back the result as an input
 */
@@ -143,6 +143,7 @@ feedback:
     sta out5
     sta out6
     rts
+
 //--------------------
 clear_all:
     lda #$00
@@ -162,6 +163,7 @@ clear_all:
     sta out5
     sta out6
     rts
+
 //--------------------
 clear_a:
     lda #$00
@@ -172,6 +174,7 @@ clear_a:
     sta ina5
     sta ina6
     rts
+
 //--------------------
 clear_b:
     lda #$00
@@ -179,6 +182,7 @@ clear_b:
     sta inbm
     sta inbh
     rts
+
 //--------------------
 clear_out:
     lda #$00
@@ -189,6 +193,7 @@ clear_out:
     sta out5
     sta out6
     rts
+
 //--------------------
 nega:
     lda inal
@@ -203,6 +208,7 @@ nega:
     eor #$ff
     sta inah
     rts
+
 //--------------------
 negb:
     lda inbl
@@ -217,6 +223,7 @@ negb:
     eor #$ff
     sta inbh
     rts
+
 //--------------------
 nego:
     lda outl
@@ -231,6 +238,7 @@ nego:
     eor #$ff
     sta outh
     rts
+
 //--------------------
 add:
     clc
@@ -244,6 +252,7 @@ add:
     adc inbh
     sta outh
     rts
+
 //--------------------
 sub:
     jsr negb
@@ -258,8 +267,11 @@ sub:
     adc inah
     sta outh
     rts
+
 //--------------------
 mul:
+    stx !shadow_x+ + 1
+    sty !shadow_y+ + 1
     ldy #$00
 	lda inah //high byte (sign)
 	bpl !skip+ //  if factor1 is negative
@@ -321,6 +333,10 @@ align:
 	beq !skip+
 	jsr nego // then product := -product
 !skip:
+!shadow_x:
+    ldx #$00
+!shadow_y:
+    ldy #$00
     rts
     
 

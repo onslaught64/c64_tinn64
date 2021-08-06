@@ -26,12 +26,6 @@ disk.d64: tinn-fe/src/demo.prg ## create complete c64 disk demo
 		c1541 -attach $@ -write tinn-fe/src/greets.prg "01"
 		c1541 -attach $@ -write tinn-fe/src/noter.prg "02"
 		c1541 -attach $@ -write tinn-fe/src/draw.prg "03"
-# 		c1541 -attach $@ -write tinn-fe/src/demo.prg "q!d!64! by defame" 
-# 		c1541 -attach $@ -write tinn-fe/src/intro.prg "01"
-# 		c1541 -attach $@ -write tinn-fe/rsrc/e000-music.prg "02"
-# 		c1541 -attach $@ -write tinn-fe/rsrc/logo.prg "03"
-# 		c1541 -attach $@ -write tinn-fe/rsrc/brain.prg "04"
-#		c1541 -attach $@ -write rsrc/readme.prg "invitro readme!"
 
 clean: ## Clean up
 		rm tinn-fe/src/*.sym tinn-fe/src/*.prg *.d64
@@ -41,15 +35,15 @@ run:	disk.d64 ## run the d64
 
 test-layout:
 		kick tinn-fe/test/test-layout.asm
-		x64 tinn-fe/test/test-layout.prg
 
 test-math:
 		kick tinn-fe/test/test-math.asm
-		x64 tinn-fe/test/test-layout.prg
 
-test-nn:
+test-nn: ## test neural net
 		kick tinn-fe/test/test-nn.asm
-		x64 tinn-fe/test/test-layout.prg
+
+test_fp: ## test fixed point
+		bin/run.sh test/fp_test.py
 
 build_screens: ## make the screen datafiles using petscii packer
 		kick tinn-fe/ui//screens.asm
@@ -103,6 +97,3 @@ convert: ##convert quick draw files into training dataset
 
 train_qd: ##train quick draw dataset
 		bin/run.sh main.py "data/training.data" "tinn-fe/rsrc/qd.asm"
-
-test_fp: ## test fixed point
-		bin/run.sh test/fp_test.py

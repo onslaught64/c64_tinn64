@@ -1,6 +1,6 @@
 # Journal
 
-## 2021-08-06:
+## 2021-08-05:
 First journal entry and it's late in the development cycle, but I wanted to record the rest of this process at least. One day I will write more here - for now - quick catchup:
 
 * I started this project years ago but have been on a rollercoaster with changing careers so C64 never got much time
@@ -18,6 +18,21 @@ Todo that I can't forget about from last night:
 Ideas not to forget about:
 * How would I extend math library to handle matrices? (dot product)
 * Test the use of sigmoid activation for convolutional network (most use RELU)
+
+## 2021-08-06:
+Done tonight:
+* Fix math.mul shadowing
+* Added some documentation to the code as I went
+* Moved around some test code and general test area cleanup
+* Set up `test-nn` target
+* fixed the `test-nn.asm` to work with nn2.asm and math.asm
+* First pass of debug on nn2.asm amd put restructured the build so I can test the MNIST model without the loader
+
+Todo not to forget about:
+1. copy some mnist bytemaps 
+2. routine to replace SCREEN_BUFFER with a test bytemap
+3. test signmoid activation_function
+4. test nn_forward_propagate classifier
 
  
 

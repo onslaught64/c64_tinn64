@@ -5,8 +5,12 @@ Labels and config
 .label hidden_layer_size = 32
 .label output_layer_size = 10
 
+/*
+ZEROPAGE:
+Note MATH uses $a0 - $ad
+*/
 .var inl = $b6
-,var inh = $b7
+.var inh = $b7
 
 .var ptrl = $b0
 .var ptrh = $b1
@@ -25,6 +29,9 @@ Labels and config
 
 .var neuron_counter = $b2
 
+/*
+Functions
+*/
 push_tmp:
 	lda outl
 	sta tmpl
@@ -88,6 +95,15 @@ tmp_to_winner:
             for j in range(self.nhid):
                 s += self.h[j] * self.x2[i][j]
             self.o[i] = self.act(s)
+
+This is the main function: 
+Forward propagate 
+The output of this is ZEROPAGE: wini
+which contains the index of the winner 
+- in the case of MNIST this would represent 
+the digit (as HEX) for QD this would be a 
+classification of some kind (based on our dataset) 
+of doodle.
 */
 nn_forward_propagate:
 	ldx #$00
@@ -98,7 +114,7 @@ nn_forward_propagate:
 	lda t_weights_hidden + 1
 	sta datah
 	lda #<hidden_layer
-	sta prtl
+	sta ptrl
 	lda #>hidden_layer
 	sta ptrh
 	lda #$00
@@ -138,12 +154,12 @@ loop_hidden_perceptron:
 	inc datal
 	bne !finalise+
 	inc datah
-!finalise+
+!finalise:
 	inx
 	cpx #$00
 	bne loop_hidden_perceptron
 	jsr activation_function
-	pop_zp(ptr)
+	pop_zp(ptrl)
 	dec neuron_counter
 	bne loop_hidden_layer
 /*
@@ -157,7 +173,7 @@ Hidden layer to output layer
 	lda t_weights_output + 1
 	sta datah
 	lda #<output_layer
-	sta prtl
+	sta ptrl
 	lda #>output_layer
 	sta ptrh
 	lda #<hidden_layer
@@ -198,9 +214,11 @@ loop_output_perceptron:
 	lda tmph
 	sta outh
 	jsr activation_function
-	pop_zp(ptr)
+	pop_zp(ptrl)
 	dec neuron_counter
-	bne loop_output_layer
+	beq !skip+
+	jmp loop_output_layer
+!skip:
 
 /*
 Determine the winner
@@ -300,8 +318,3 @@ output_layer:
 .for(var i=0;i<output_layer_size;i++){
 	.byte $00, $00, $00 //24 bit fixed point	
 }
-
-.segment Noter [outPrg="mnist.prg"]
-.pc = *
-nn_include:
-.import source "tinn-fe/rsrc/mnist.asm"
