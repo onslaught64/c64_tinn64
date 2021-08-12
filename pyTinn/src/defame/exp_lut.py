@@ -28,6 +28,8 @@ class ExpLut(AbstractRenderer):
     """
     def __init__(self):
         self.__lut = []
+        self.__one: FixedPointNumber = FixedPointNumber(1.0)
+        self.__zero: FixedPointNumber = FixedPointNumber(0.0)
         vals = np.linspace(-11, 11, 176)
         for i in range(176):
             tmp = 1 / (1 + math.exp(vals[i] * -1))
@@ -36,11 +38,11 @@ class ExpLut(AbstractRenderer):
     def __getitem__(self, item: int):
         return self.__lut[item]
 
-    def eval(self, input):
+    def eval(self, input) -> FixedPointNumber:
         if input > 11:
-            return 1.0
+            return self.__one
         if input < -11:
-            return 0.0
+            return self.__zero
         tmp = input + 11  # make range 0 -> 22 instead of -11 to +11
         tmp = (tmp / 22) * 176
         tmp = int(tmp)

@@ -267,23 +267,26 @@ Exp LUT range limits
 
 */
 _return_zero:
+	print("RETURN 0")
 	jsr clear_out //0.0
 	rts
+
 _return_one:
+	print("RETURN 1")
 	jsr clear_out
 	lda #$04 //1.0
 	sta outh
 	rts
+
 activation_function:
 	jsr feedback
 	jsr clear_b
 	lda #$2c
 	sta inbh
 	jsr add
-
 	lda outh
 	bit neg_byte
-	beq _return_zero
+	bne _return_zero
 	cmp #$58
 	bcs _return_one
 _return_sigmoid:

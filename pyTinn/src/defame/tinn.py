@@ -6,6 +6,7 @@ import random
 import numpy as np
 
 from defame.exp_lut import ExpLut
+from defame.fixedpointnumber import FixedPointNumber
 
 """
 Build a new t object given number of inputs (nips), number of hidden neurons for the hidden layer (nhid), and number of outputs (nops).
@@ -51,7 +52,8 @@ class Tinn(object):
 
     def act(self, a: float) -> float:
         """Activation function."""
-        return self.lut.eval(a)
+        fpn: FixedPointNumber = self.lut.eval(a)
+        return fpn.value
         # return 1 / (1 + math.exp(-a))
 
     def pdact(self, a: float) -> float:

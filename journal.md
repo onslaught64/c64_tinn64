@@ -34,5 +34,8 @@ Todo not to forget about:
 3. test signmoid activation_function
 4. test nn_forward_propagate classifier
 
+## 2021-08-12:
+Working on the NN test suite. At the moment there are some placeholder outputs in the activation function - which seems to be working now. The only issue is that I think that the resolution of the activation function may be too low for the network. Currently the forward propagation is failing.
+
  
 
