@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from typing import IO
-
 from defame.abstract_renderer import AbstractRenderer
 from defame.tinn import Tinn
 from defame.fixedpointnumber import FixedPointNumber

@@ -88,3 +88,18 @@ class Tinn(object):
             for j in range(self.nhid):
                 s += self.h[j] * self.x2[i][j]
             self.o[i] = self.act(s)
+
+    def fpfprop(self, in_: [FixedPointNumber]) -> None:
+        """Forward propagation."""
+        # Calculate hidden layer neuron values.
+        for i in range(self.nhid):
+            s = self.b[0]  # start with bias
+            for j in range(self.nips):
+                s += in_[j] * self.x1[i][j]
+            self.h[i] = self.act(s)
+        # Calculate output layer neuron values.
+        for i in range(self.nops):
+            s = self.b[1]  # start with bias
+            for j in range(self.nhid):
+                s += self.h[j] * self.x2[i][j]
+            self.o[i] = self.act(s)

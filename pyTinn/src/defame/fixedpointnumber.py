@@ -13,31 +13,40 @@ bit_depth = 0x1000000
 
 class FixedPointNumber(object):
     def __init__(self, value: float):
-        self._fp: float = value
-        self._int: int = 0
-        self._bits = []
-        self._reparse()
+        self.__fp: float = value
+        self.__int: int = 0
+        self.__bits = []
+        self.__reparse()
 
     def _go_neg(self, val):
         if (val & (1 << (24 - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
             val = val - (1 << 24)        # compute negative value
         return val & ((2 ** 24) - 1)
 
-    def _reparse(self):
-        value = self._fp
-        self._int = int(round(((value/msb_range)*bit_depth)))
-        self._bits = self._int.to_bytes(3, byteorder='little', signed=True)
+    def __reparse(self):
+        value = self.__fp
+        self.__int = int(round(((value / msb_range) * bit_depth)))
+        self.__bits = self.__int.to_bytes(3, byteorder='little', signed=True)
 
     @property
     def value(self) -> float:
-        return self._fp
+        return self.__fp
 
     @property
     def scalar(self) -> int:
-        return self._int
+        return self.__int
+
+    def from_scalar(self, s: int):
+        self.__fp = float(s / bit_depth / msb_range)
+        print(str(self.__fp))
+        self.__reparse()
+
+    def from_value(self, f: float):
+        self.__fp = f
+        self.__reparse()
 
     def render_byte(self, index: int) -> str:
-        return "$" + hex(self._bits[index]).replace('0x','').zfill(2)
+        return "$" + hex(self.__bits[index]).replace('0x', '').zfill(2)
 
     def __str__(self):
         output = ".byte "

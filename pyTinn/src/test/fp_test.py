@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#todo: convert this to unit tests
+# todo: convert this to unit tests
 
 from defame.fixedpointnumber import FixedPointNumber
 import numpy as np
@@ -11,6 +11,26 @@ import math
 def fp(value: float):
     f = FixedPointNumber(value)
     print(str(f))
+
+
+def do_fp(va: float, vb: float, op: str):
+    print(f"{str(va)}{op}{str(vb)}")
+    vo: float = 0.00
+    fo: FixedPointNumber = FixedPointNumber(0.0)
+    fa: FixedPointNumber = FixedPointNumber(va)
+    fb: FixedPointNumber = FixedPointNumber(vb)
+    if op == "*":
+        vo = va * vb
+        fo.from_scalar(fa.scalar * fb.scalar)
+    elif op == "+":
+        vo = va + vb
+        fo.from_scalar(fa.scalar + fb.scalar)
+    elif op == "-":
+        vo = va - vb
+        fo.from_scalar(fa.scalar - fb.scalar)
+    print(str(vo))
+    print(str(fo))
+    print()
 
 
 print("Testing high byte negative to positive range")
@@ -38,7 +58,6 @@ fp(-7.9)
 fp(0.27585)
 fp(-7.9 * 0.27585)
 
-
 print("Exp LUT range limits")
 fp(-11)
 fp(11)
@@ -47,6 +66,19 @@ fp(31.99999)
 fp(-31.99999)
 fp(22)
 fp(0)
+
+do_fp(1.2, 1.2, "+")
+do_fp(1.2, 1.2, "*")
+
+do_fp(1.0, 1.0, "+")
+do_fp(1.0, 1.0, "*")
+
+do_fp(2.0, 1.0, "+")
+do_fp(2.0, 1.0, "*")
+
+do_fp(2.16625, 1.33543, "+")
+do_fp(2.16625, 1.33543, "*")
+
 
 # print("Testing exponent segments (256 byte range)")
 # for i in range(256):
