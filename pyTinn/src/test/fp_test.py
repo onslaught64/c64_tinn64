@@ -13,26 +13,6 @@ def fp(value: float):
     print(str(f))
 
 
-def do_fp(va: float, vb: float, op: str):
-    print(f"{str(va)}{op}{str(vb)}")
-    vo: float = 0.00
-    fo: FixedPointNumber = FixedPointNumber(0.0)
-    fa: FixedPointNumber = FixedPointNumber(va)
-    fb: FixedPointNumber = FixedPointNumber(vb)
-    if op == "*":
-        vo = va * vb
-        fo.from_scalar(fa.scalar * fb.scalar)
-    elif op == "+":
-        vo = va + vb
-        fo.from_scalar(fa.scalar + fb.scalar)
-    elif op == "-":
-        vo = va - vb
-        fo.from_scalar(fa.scalar - fb.scalar)
-    print(str(vo))
-    print(str(fo))
-    print()
-
-
 print("Testing high byte negative to positive range")
 vals = np.linspace(-1, 1, 0xf)
 for i in vals:
@@ -67,17 +47,18 @@ fp(-31.99999)
 fp(22)
 fp(0)
 
-do_fp(1.2, 1.2, "+")
-do_fp(1.2, 1.2, "*")
+FixedPointNumber.op(FixedPointNumber(1.0), FixedPointNumber(1.0), "+")
+FixedPointNumber.op(FixedPointNumber(2.0), FixedPointNumber(2.0), "+")
+FixedPointNumber.op(FixedPointNumber(3.0), FixedPointNumber(3.0), "+")
+FixedPointNumber.op(FixedPointNumber(1.5), FixedPointNumber(1.0), "+")
+FixedPointNumber.op(FixedPointNumber(1.750), FixedPointNumber(1.075), "+")
 
-do_fp(1.0, 1.0, "+")
-do_fp(1.0, 1.0, "*")
-
-do_fp(2.0, 1.0, "+")
-do_fp(2.0, 1.0, "*")
-
-do_fp(2.16625, 1.33543, "+")
-do_fp(2.16625, 1.33543, "*")
+FixedPointNumber.op(FixedPointNumber(1.0), FixedPointNumber(1.0), "*")
+FixedPointNumber.op(FixedPointNumber(2.0), FixedPointNumber(2.0), "*")
+FixedPointNumber.op(FixedPointNumber(3.0), FixedPointNumber(3.0), "*")
+FixedPointNumber.op(FixedPointNumber(1.5), FixedPointNumber(1.0), "*")
+FixedPointNumber.op(FixedPointNumber(1.750), FixedPointNumber(1.075), "*")
+FixedPointNumber.op(FixedPointNumber(1.0), FixedPointNumber(0.5), "*")
 
 
 # print("Testing exponent segments (256 byte range)")

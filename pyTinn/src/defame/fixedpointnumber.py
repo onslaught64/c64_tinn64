@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 FIXED POINT NUMBER
 ------------------
@@ -36,9 +37,31 @@ class FixedPointNumber(object):
     def scalar(self) -> int:
         return self.__int
 
+    @staticmethod
+    def op(a: FixedPointNumber, b: FixedPointNumber, op: str) -> FixedPointNumber:
+        fo: FixedPointNumber = FixedPointNumber(0.0)
+        fv: float = 0.0
+        if op == "*":
+            _: int = a.scalar * b.scalar
+            _ = int(_ / 262144)  # could math.asm be wrong? I am shifting down by 18 bits!
+            fv = a.value * b.value
+            fo.from_scalar(_)
+        elif op == "+":
+            _: int = a.scalar + b.scalar
+            fv = a.value + b.value
+            fo.from_scalar(_)
+        elif op == "-":
+            _: int = a.scalar - b.scalar
+            fv = a.value - b.value
+            fo.from_scalar(_)
+        print("FOP:")
+        print(f"{str(a.value)}{op}{str(b.value)}={str(fv)}")
+        print(f"{str(a.value)}{op}{str(b.value)}={str(fo.value)}")
+        print(f"{str(a.scalar)}{op}{str(b.scalar)}={str(fo.scalar)}")
+        return fo
+
     def from_scalar(self, s: int):
-        self.__fp = float(s / bit_depth / msb_range)
-        print(str(self.__fp))
+        self.__fp = float((s * msb_range) / bit_depth)
         self.__reparse()
 
     def from_value(self, f: float):
